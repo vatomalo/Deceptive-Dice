@@ -1,12 +1,14 @@
 // =======================================================
 // banter.js — Dynamic Manga Panel Banter System (JSON)
+//  + auto text-resize so long lines fit in panels
 // =======================================================
 console.log("banter.js loaded");
 
 (function() {
 
     class BanterMessage {
-        constructor(text, side, duration = 2300) {
+        // Slightly longer default duration
+        constructor(text, side, duration = 2800) {
             this.text = text;
             this.side = side;
             this.duration = duration;
@@ -106,13 +108,18 @@ console.log("banter.js loaded");
             if (!this.messages.length) return;
 
             ctx.save();
-            ctx.font = "18px pixel";
             ctx.textBaseline = "middle";
 
-            const panelH = 48;
-            const marginY = 72;
-            const padX = 12;
-            const padY = 10;
+            const baseFontSize = 18;
+            const minFontSize  = 10;
+
+            const panelH   = 48;
+            const marginY  = 72;
+            const padX     = 12;
+            const padY     = 10;
+
+            // Max width so left/right panels don't crash into each other
+            const maxPanelW = 220;
 
             for (const msg of this.messages) {
                 if (!msg.alive) continue;
@@ -120,8 +127,26 @@ console.log("banter.js loaded");
                 const alpha = msg.alpha;
                 ctx.globalAlpha = alpha;
 
+                // --- AUTO FONT RESIZE PER MESSAGE -----------------
+                let fontSize = baseFontSize;
+                let panelW   = maxPanelW;
+
+                // Shrink font until text fits inside fixed panel width
+                while (true) {
+                    ctx.font = `${fontSize}px pixel`;
+                    const textWidth = ctx.measureText(msg.text).width;
+                    const needed = textWidth + padX * 2;
+
+                    if (needed <= panelW || fontSize <= minFontSize) {
+                        break;
+                    }
+                    fontSize -= 1;
+                }
+
+                // Measure once more with final font
+                ctx.font = `${fontSize}px pixel`;
                 const textWidth = ctx.measureText(msg.text).width;
-                const panelW = Math.max(180, textWidth + padX * 2);
+                panelW = Math.max(180, Math.min(maxPanelW, textWidth + padX * 2));
 
                 let x;
                 if (msg.side === "left")       x = 24;
