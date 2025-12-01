@@ -1,25 +1,38 @@
+// =======================================================
+// BGMsystem.js — Single-element BGM (no double playback)
+// Crossfade API kept as dormant stub
+// =======================================================
 console.log("MusicSystem loaded");
 
 // ----------------------------------------------------
 // GLOBAL MOOD STATE
-// "calm", "tense", "story", etc.
 // ----------------------------------------------------
 let currentMood = "calm";
 
-// Expose mood setter
 window.setMood = function (newMood) {
     currentMood = newMood;
-    console.log(`Mood set to: ${currentMood}`);
+    console.log("Mood set to:", currentMood);
 };
 
+// ----------------------------------------------------
+// Grab the single global audio element
+// ----------------------------------------------------
+const bgmEl = document.getElementById("audioPlayer");
+if (!bgmEl) {
+    console.warn("BGMsystem: #audioPlayer not found in DOM!");
+}
+
+// Make sure it loops by default
+if (bgmEl) {
+    bgmEl.loop = true;
+    bgmEl.volume = 1.0;
+}
 
 // ----------------------------------------------------
 // MUSIC SYSTEM
 // ----------------------------------------------------
 const MusicSystem = {
 
-    // Just the base names, we’ll inject mood when we build the path
-    // Files are expected like: ./BGM/calm/BG3.mp3, ./BGM/tense/BG3.mp3, ...
     baseNames: [
         "BG",
         "BG1",
@@ -31,162 +44,105 @@ const MusicSystem = {
         "BG7"
     ],
 
-    current: null,     // currently audible track
-    next: null,        // track we’re fading *into*
-    fadeTime: 1500,    // crossfade duration in ms
-    preFadeMs: 5000,   // how long before end we start next track
-    nextTimer: null,   // timeout id for scheduling next track
+    currentName: null,
+    fadeTime: 1500,
 
     clamp(v) {
         return Math.min(1, Math.max(0, v));
     },
 
-    // Build a full path for the current mood + name
+    // ./BGM/<mood>/<name>.mp3
     buildTrackPath(name) {
-        // Example: "./BGM/calm/BG3.mp3"
         return `./BGM/${currentMood}/${name}.mp3`;
     },
 
     // ------------------------------------------------
-    // MAIN ENTRY: play any random track for currentMood
-    // Call this again after changing mood to force a swap:
-    //   setMood("tense");
-    //   MusicSystem.playRandom();
+    // STOP — guarantees no music is playing
     // ------------------------------------------------
+    stop() {
+        if (!bgmEl) return;
+        bgmEl.pause();
+        // optional: reset src so it releases
+        // bgmEl.src = "";
+        this.currentName = null;
+    },
+
+    // =================================================
+    // SIMPLE: PLAY RANDOM + LOOP (NO CROSSFADES)
+    // =================================================
     async playRandom() {
+        if (!bgmEl) return;
 
-        // Clear any pending "auto-next" from the previous track
-        if (this.nextTimer) {
-            clearTimeout(this.nextTimer);
-            this.nextTimer = null;
-        }
+        // Hard stop anything currently playing
+        this.stop();
 
-        // pick a base name and build the path *for the current mood*
         const name = this.baseNames[Math.floor(Math.random() * this.baseNames.length)];
-        const pick = this.buildTrackPath(name);
+        const src  = this.buildTrackPath(name);
 
-        console.log("Playing BGM:", pick);
+        console.log("BGM →", src);
 
-        this.next = new Audio(pick);
-        this.next.volume = 0;
-        this.next.loop = false;
+        bgmEl.src    = src;
+        bgmEl.loop   = true;
+        bgmEl.volume = 1.0;
 
-        let played = false;
+        this.currentName = name;
+
         try {
-            await this.next.play();
-            played = true;
+            await bgmEl.play();
         } catch (err) {
-            console.warn("Autoplay blocked, retrying after 200ms...", err);
-            setTimeout(() => this.playRandom(), 200); // arrow keeps `this`
-            return;
-        }
-
-        if (!played) return;
-
-        // Crossfade into this.next
-        this.crossfade();
-    },
-
-    // ------------------------------------------------
-    // SCHEDULE NEXT TRACK (overlaps before end)
-    // ------------------------------------------------
-    scheduleNext(track) {
-        if (!track) return;
-
-        // Cancel any old timer
-        if (this.nextTimer) {
-            clearTimeout(this.nextTimer);
-            this.nextTimer = null;
-        }
-
-        const startTimer = () => {
-            const durSec = track.duration;
-            const durMs = durSec * 1000;
-
-            // If duration is unknown or too short, fall back to onended
-            if (!isFinite(durMs) || durMs <= this.preFadeMs + 500) {
-                track.onended = () => {
-                    // Start a new random track *when this one really ends*
-                    this.playRandom();
-                };
-                return;
-            }
-
-            const wait = Math.max(200, durMs - this.preFadeMs);
-
-            this.nextTimer = setTimeout(() => {
-                // When this fires, we are still inside this track,
-                // so we start the next one early and crossfade.
-                this.playRandom();
-            }, wait);
-
-            // Fail-safe: if something weird happens, still move on at end.
-            track.onended = () => {
-                if (this.nextTimer) {
-                    clearTimeout(this.nextTimer);
-                    this.nextTimer = null;
-                }
-                this.playRandom();
-            };
-        };
-
-        // Duration may not be ready yet
-        if (!isFinite(track.duration) || track.duration === 0) {
-            track.addEventListener("loadedmetadata", startTimer, { once: true });
-        } else {
-            startTimer();
+            console.warn("BGM autoplay blocked:", err);
         }
     },
 
-    // ------------------------------------------------
-    // CROSSFADE: old → new
-    // ------------------------------------------------
-    crossfade() {
+    // =================================================
+    // DORMANT: CROSSFADING STUB (kept for later)
+    // Right now this just logs instead of actually
+    // running a 2-source crossfade, to avoid bugs.
+    // =================================================
+    async crossfadeTo(name) {
+        console.log(
+            "MusicSystem.crossfadeTo called with",
+            name,
+            "→ crossfade is currently dormant (single-audio mode)"
+        );
 
-        // First track: just fade in
-        if (!this.current) {
-            this.current = this.next;
-            const t0 = performance.now();
+        // If you *really* want to swap tracks smoothly for now,
+        // we can do a crude fade-out + fade-in on the same element:
+        if (!bgmEl) return;
 
-            const fadeIn = (now) => {
-                const p = this.clamp((now - t0) / this.fadeTime);
-                this.current.volume = p;
-                if (p < 1) {
-                    requestAnimationFrame(fadeIn);
-                }
-            };
-            requestAnimationFrame(fadeIn);
+        const newSrc = this.buildTrackPath(name);
+        const fadeDur = this.fadeTime;
+        const startVolume = bgmEl.volume;
 
-            // Schedule its successor *before* it ends
-            this.scheduleNext(this.current);
-            return;
-        }
-
-        // Subsequent tracks: crossfade old → new
-        const oldTrack = this.current;
-        const newTrack = this.next;
-        const t0 = performance.now();
-
-        const fade = (now) => {
-            const p = this.clamp((now - t0) / this.fadeTime);
-            oldTrack.volume = this.clamp(1 - p);
-            newTrack.volume = this.clamp(p);
-
-            if (p < 1) {
-                requestAnimationFrame(fade);
+        // Fade out
+        const startOut = performance.now();
+        const fadeOutStep = (now) => {
+            const t = this.clamp((now - startOut) / fadeDur);
+            bgmEl.volume = startVolume * (1 - t);
+            if (t < 1) {
+                requestAnimationFrame(fadeOutStep);
             } else {
-                oldTrack.pause();
+                // swap source and fade back in
+                bgmEl.pause();
+                bgmEl.src = newSrc;
+                bgmEl.volume = 0;
+                bgmEl.play().then(() => {
+                    const startIn = performance.now();
+                    const fadeInStep = (now2) => {
+                        const t2 = this.clamp((now2 - startIn) / fadeDur);
+                        bgmEl.volume = t2;
+                        if (t2 < 1) {
+                            requestAnimationFrame(fadeInStep);
+                        }
+                    };
+                    requestAnimationFrame(fadeInStep);
+                }).catch(err => {
+                    console.warn("BGM crossfade play failed:", err);
+                });
             }
         };
-
-        this.current = newTrack;
-        requestAnimationFrame(fade);
-
-        // Schedule next track for the *new* current
-        this.scheduleNext(this.current);
+        requestAnimationFrame(fadeOutStep);
     }
 };
 
-// Make it GLOBAL
 window.MusicSystem = MusicSystem;
-// =======================================================
