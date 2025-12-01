@@ -1,92 +1,107 @@
-/* ============================
-   GLOBAL
-============================ */
-html, body {
+/* =========================================
+   RESET
+========================================= */
+* {
     margin: 0;
     padding: 0;
-    height: 100%;
-    width: 100%;
-    background: black;
-    overflow: hidden;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-sizing: border-box;
 }
 
-/* ============================
-   TITLE SCREEN
-============================ */
-#title-screen {
-    position: fixed;
-    inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+/* =========================================
+   MAIN WRAPPER
+========================================= */
+#game-ui {
+    position: relative;
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
+}
 
-    background-image: url("../Artwork/cover.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+/* =========================================
+   TITLE SCREEN (your cover.png)
+   Path is relative to CSS/style.css → ../Artwork/cover.png
+========================================= */
+#title-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+
+    background:
+        url("../Artwork/cover.png") center center / contain no-repeat;
+    background-color: #000; /* behind transparent parts */
 
     display: flex;
-    justify-content: center;
     align-items: center;
-
-    cursor: pointer;          /* whole screen starts game */
-    z-index: 9999;
+    justify-content: center;
 }
 
-#start-btn {
-    font-weight: bold;
-    font-size: 42px;
-    padding: 20px 50px;
-    border: 4px solid #ffcc33;
-    color: #ffcc33;
-    background: rgba(0,0,0,0.65);
-    text-shadow: 2px 2px 0 #000;
-    cursor: pointer;
+/* JS can add this class after Start is pressed */
+#title-screen.hidden {
+    display: none;
 }
 
-/* ============================
-   GAME CANVAS
-   (1280×720 internal → scaled to fullscreen)
-============================ */
+/* =========================================
+   CANVAS — 640×360, HARD CENTERED
+========================================= */
 #game-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 
-    width: 100vw;     /* stretch to full screen */
-    height: 100vh;    /* stretch to full screen */
+    width: 640px;
+    height: 360px;
+
+    background: #000;
+    border: 4px solid #1a1a1a;
+    box-shadow: 0 0 32px rgba(0,0,0,0.8);
 
     image-rendering: pixelated;
-    display: none;    /* shown after Start */
+    image-rendering: crisp-edges;
+
+    display: block;
 }
 
-/* ============================
-   MOBILE / SMALL SCREENS
-============================ */
+/* =========================================
+   PORTRAIT → ROTATE OVERLAY
+========================================= */
+@media (orientation: portrait) {
+    #game-ui::before {
+        content: "Rotate your device to landscape to play Deceptive Dice";
+        position: fixed;
+        inset: 0;
+        z-index: 999;
 
-/* Phones & small tablets */
-@media (max-width: 768px) {
-    #start-btn {
-        font-size: 24px;
-        padding: 12px 28px;
-        border-width: 3px;
+        background: rgba(0,0,0,0.95);
+        color: #fff;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+
+        padding: 24px;
+        font-size: 18px;
+        font-family: sans-serif;
     }
 
+    #game-canvas,
     #title-screen {
-        background-position: top center;
+        display: none !important;
     }
 }
 
-/* Very narrow portrait screens (9:16, 10:19 etc) */
-@media (max-aspect-ratio: 9/16) {
-    #start-btn {
-        font-size: 20px;
-        padding: 10px 22px;
-    }
-
-    /* optional: dim BG for readability on small phones */
-    #title-screen {
-        background-color: rgba(0,0,0,0.25);
-        background-blend-mode: multiply;
+@media (orientation: landscape) {
+    #game-ui::before {
+        display: none;
+        content: "";
     }
 }
