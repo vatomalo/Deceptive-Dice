@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Deceptive Dice</title>
+</head>
+<link rel ="stylesheet" href="CSS/style.css">
+<body>
+
+<!-- =============================================
+     TITLE SCREEN (click anywhere to start)
+============================================= -->
+<div id="title-screen">
+    <button id="start-btn">START GAME</button>
+</div>
+
+<!-- =============================================
+     GAME UI + CANVAS
+============================================= -->
+<div id="game-ui">
+    <audio id="audioPlayer" preload="auto"></audio>
+    <canvas id="game-canvas" width="640" height="360"></canvas>
+</div>
+
+<!-- ENGINE SCRIPTS (UNCHANGED ORDER) -->
+<script src="engine/spritesheetanimator.js"></script>
+<script src="engine/parallaxBG.js"></script>
+<script src="engine/decorsystem.js"></script>
+<script src="engine/fx.js"></script>
+
+<script src="engine/charactersystem.js"></script>
+<script src="engine/fxsystem_character.js"></script>
+<script src="engine/damagenumbers.js"></script>
+
+<script src="engine/combat.js"></script>
+
+<script src="engine/stamina.js"></script>
+<script src="engine/statsystem.js"></script>
+<script src="engine/materiasystem.js"></script>
+
+<script src="engine/dicesystem.js"></script>
+<script src="engine/dice-smoke.js"></script>
+
+<script src="engine/materiasystem.js"></script>
+
+<script src="engine/ui-nameplates.js"></script>
+<script src="engine/ui-bars.js"></script>
+<script src="engine/banter.js"></script>
+
+<script src="engine/enemysystem.js"></script> <!-- MUST BE BEFORE main.js -->
+
+<script src="engine/xbarcontrols.js"></script>
+<script src="engine/BGMsystem.js"></script>
+<script src="engine/announcer.js"></script>
+<script src="engine/weatherfx.js"></script>
+<script src="engine/weatherdirector.js"></script>
+<script src="engine/palettesystem.js"></script>
+
+<script src="engine/main.js"></script>
+<script src="engine/helpers.js"></script>
+
+<script src="engine/renderloop.js"></script> <!-- ALWAYS LAST -->
+
+<script>
+    /* ===========================================================
+       Clicking the entire title screen = clicking the start button
+       =========================================================== */
+    document.getElementById("title-screen").addEventListener("click", () => {
+        document.getElementById("start-btn").click();
+    });
+</script>
+
+</body>
+</html>
