@@ -1,83 +1,658 @@
 {
   "samurai": {
     "roll": [
-      "Let fate speak.",
-      "Reveal yourself.",
-      "Steady…"
+      "Let fate tremble before the righteous.",
+      "Dice fall like dynasties.",
+      "Every cast is a quiet uprising.",
+      "Chance bends toward those who refuse to kneel.",
+      "The world shifts on the smallest stone.",
+      "Empires crack in moments like this.",
+      "A single roll can unmake a kingdom.",
+      "Whatever breaks can be rebuilt by the people.",
+      "I cast not for luck but for truth.",
+      "The wind holds its breath with me.",
+      "Tyrants fear randomness; it reminds them they can lose.",
+      "The cherry blossom falls without permission.",
+      "History pivots on details like these.",
+      "This table is an altar of choices.",
+      "Even steel waits to see the outcome.",
+      "If fate hesitates, I will carve its path myself.",
+      "The dice remember every lie told by the powerful.",
+      "Every number is a witness.",
+      "Silence before the storm… then the roll.",
+      "Even the moon watches this decision.",
+      "I throw away fear with the bones.",
+      "The future rattles inside this cup.",
+      "Revolt starts where certainty ends.",
+      "The smallest sound can echo into revolution.",
+      "Let the pips bear honest witness.",
+      "Everything we are fits between these edges.",
+      "I’ve seen empires fall quieter than this toss.",
+      "May injustice crack beneath this roll.",
+      "The table trembles like the old world.",
+      "Numbers do not lie. People do."
     ],
+
     "attack": [
-      "Cut through.",
-      "Your guard is open.",
-      "I'll end this."
+      "My blade speaks for those denied a voice.",
+      "Steel guided by memory, sharpened by loss.",
+      "Oppression bleeds first.",
+      "I strike for every village buried under banners.",
+      "Your armor cannot shield your guilt.",
+      "Revolt rides the edge of this blade.",
+      "My slash is a vote against your world.",
+      "A wound for every stolen harvest.",
+      "This steel has no king.",
+      "I carve open the lie so truth can breathe.",
+      "Your rank only makes the fall louder.",
+      "The strong fear the moment they are cut equal.",
+      "I strike where history has been falsified.",
+      "For every child who learned hunger before language.",
+      "For every worker who died nameless.",
+      "For the streets that remember the boots.",
+      "Power is most fragile at the neck.",
+      "You stand between the people and their dawn.",
+      "The blade chooses its side. It chose them.",
+      "I swing for those who never held a weapon.",
+      "You defend what should never have been built.",
+      "No throne survives enough cuts.",
+      "I shatter the illusion that you cannot fall.",
+      "Even iron kneels to a patient edge.",
+      "Your laws crumble where my steel passes.",
+      "This strike is a strike on all your masters.",
+      "Armies could not silence them. Maybe this will.",
+      "I will not stop at flesh. I cut systems.",
+      "You fight for order. I fight for life.",
+      "The moment of impact is history rewriting itself.",
+      "My resolve is sharper than this sword.",
+      "You will be remembered as a warning.",
+      "Justice is not gentle today.",
+      "Every slash is another broken chain.",
+      "You raised your blade to protect capital. I raise mine to end it."
     ],
+
+    "hit": [
+      "I felt that land clean.",
+      "The blade found its mark.",
+      "Each cut rewrites the story.",
+      "Your armor rings hollow.",
+      "Even steel cannot carry such rotten weight.",
+      "You stagger — so does your order.",
+      "Your blood remembers what your mind forgot.",
+      "Strength without justice is just meat.",
+      "You flinch like someone who has seen too much truth.",
+      "This scar will spell doubt into your sleep.",
+      "Every wound I leave is a question you cannot answer.",
+      "Your shield buckles under history.",
+      "You feel that? That is the world pushing back.",
+      "You bleed the same as peasants.",
+      "No title protects you now.",
+      "The edge cuts through your certainty.",
+      "Your stance falters. Your cause already fell.",
+      "This is for the ones you called collateral.",
+      "Each impact is a vote of no confidence.",
+      "You carry the pain you helped sow.",
+      "You thought yourself untouchable.",
+      "The ground underneath you is choosing sides.",
+      "You now know how it feels to be on the receiving end.",
+      "Your confidence leaks out with every drop.",
+      "Armour rattles; conscience cracks.",
+      "You met someone who does not fear the fall.",
+      "In your eyes I see the first doubt.",
+      "You are learning your limits too late.",
+      "The blade teaches what sermons never did.",
+      "That sound was arrogance breaking."
+    ],
+
     "hurt": [
-      "Tch…",
-      "Sloppy.",
-      "I misread that."
+      "Pain is a lantern in the dark.",
+      "This wound is temporary; resolve is not.",
+      "Blood waters the seeds of change.",
+      "I have survived heartbreak sharper than this.",
+      "Even blossoms bruise in the wind.",
+      "A warrior without scars has never resisted.",
+      "I hurt, but I remain.",
+      "The cut is real. So is my cause.",
+      "Empires have struck harder. I am still here.",
+      "My body bends where my will will not.",
+      "Each wound is another lesson.",
+      "The sting keeps me awake.",
+      "If this is the price, I pay it gladly.",
+      "Your strike reminds me why I fight.",
+      "Pain focuses the spirit.",
+      "Soft hearts bruise; hard hearts break.",
+      "You cut, but you do not reach the core.",
+      "This isn’t the first time steel found me.",
+      "I’ve bled for less worthy battles.",
+      "I will not fall to a hired blade.",
+      "You mistake injury for defeat.",
+      "I walk with ghosts heavier than this.",
+      "This is nothing compared to the weight of memory.",
+      "My blood runs, but my stance remains.",
+      "You’ll see how stubborn a scar can be.",
+      "I’ve been closer to death and still walked home.",
+      "I’ve lost more than health before.",
+      "This burn will only temper me.",
+      "Pain reminds me I’m still in the fight.",
+      "You gave me something to remember you by."
     ],
+
     "win": [
-      "Rest.",
+      "Another guardian of power undone.",
+      "The path clears. The people breathe.",
+      "Your fall is a lesson to your masters.",
+      "Even plated dogs can be laid to rest.",
       "Next.",
-      "Another falls."
+      "History forgets oppressors, remembers rebels.",
+      "One more stone removed from the wall.",
+      "The ground feels lighter without your tread.",
+      "Your defeat is a footnote in their downfall.",
+      "I step over you toward a better dawn.",
+      "Armor quiet; the world a little less loud with lies.",
+      "This victory belongs to those who never stood here.",
+      "You defended a rotten structure. It still fell.",
+      "The wind no longer smells of your lord’s perfume.",
+      "Another mask removed from empire’s face.",
+      "You lie quiet; truth keeps walking.",
+      "You chose the wrong side of history.",
+      "May your end warn the next one.",
+      "I won, but the war continues.",
+      "Even this triumph is just a small crack.",
+      "Your blade will rust; my cause will not.",
+      "The noise fades. The struggle does not.",
+      "Let the next knight tremble a little.",
+      "I do not rejoice in corpses; only in endings.",
+      "You are free now—from your oath."
+    ],
+
+    "death": [
+      "If I fall, let others rise where I could not.",
+      "My story dims, but is not erased.",
+      "The body ends; the echo does not.",
+      "Remember the cause, not the corpse.",
+      "I return to the dust the empire walked on.",
+      "Let my failure be a map, not a grave.",
+      "I have no regrets, only unfinished roads.",
+      "They can cut me down, not what I stood for.",
+      "The earth knows my footsteps now.",
+      "If I die here, let this place burn in memory.",
+      "Even in death, I refuse surrender.",
+      "You may end a man, not an idea.",
+      "Everything I loved moves forward without me.",
+      "Plant me like a seed under their monuments.",
+      "The revolution continues without my breath."
+    ],
+
+    "found": [
+      "Materia forged by forgotten dreamers.",
+      "Even relics rebel against kings.",
+      "A gift smuggled through time.",
+      "Power without chains attached… rare.",
+      "The road offers tools to the persistent.",
+      "Hidden strength for heavy days.",
+      "I will bend this toward liberation.",
+      "Old light for new battles.",
+      "Strange how the world arms those who resist.",
+      "This may tip a future scale.",
+      "Silent stones carry loud potential.",
+      "Found in the dust, aimed at the sky.",
+      "Once hoarded, now reclaimed.",
+      "Another fragment the empire failed to hide.",
+      "Strength that owes nothing to crowns.",
+      "Power best held by calloused hands.",
+      "I’ll make sure this does not serve a tyrant again.",
+      "Pieces of a better future, scattered and found.",
+      "Even the ruins arm the living.",
+      "This belongs with those who dare."
+    ],
+
+    "pass": [
+      "Flow like water; deny the strike.",
+      "A quiet step saves louder lives.",
+      "Not every advance is forward.",
+      "Distance reveals truth.",
+      "The blade rests, the mind sharpens.",
+      "I move where your orders cannot follow.",
+      "You cannot cut what you cannot catch.",
+      "Ghost-step between intentions.",
+      "Evading you is easier than evading history.",
+      "Sometimes the bravest act is to not swing.",
+      "Your rage whiffs at empty air.",
+      "I trade one heartbeat for ten future blows.",
+      "Retreat is an act of patience, not fear.",
+      "I will not dance to your tempo.",
+      "Sidestep the strike; strike the story.",
+      "Your blade writes nothing on me today.",
+      "The ground remembers how lightly I tread.",
+      "I vanish so others can appear.",
+      "The best cut is sometimes the one imagined.",
+      "I refuse to die on your schedule.",
+      "My absence is its own weapon.",
+      "I carry my body out of harm’s algorithm.",
+      "You flail at shadows; I learn your habits.",
+      "Let your strength exhaust itself on the wind.",
+      "I won’t trade my life for your ego.",
+      "The future needs me more than this moment.",
+      "You mistake restraint for weakness.",
+      "I won’t be baited by theatrics.",
+      "I sidestep your world as easily as your sword.",
+      "One measured step now, ten ruthless strikes later.",
+      "I glide through the gap between your commands.",
+      "You do not decide when I commit.",
+      "I dodge not just the blow, but the story you want to tell.",
+      "We are not done, but this is not the time.",
+      "A pause is part of the strike."
+    ],
+
+    "tina_rare": [
+      "Somewhere far from this battlefield, your laugh still walks beside me.",
+      "In the pause between strikes, I still hear your voice.",
+      "If you saw me like this, would you tell me to stop or to win?",
+      "I carry you like a hidden scar, warm and aching.",
+      "There are nights I fight harder just so the memory of you survives.",
+      "I sharpened my resolve in the silence you left behind.",
+      "If another world exists, I hope we found peace there.",
+      "Your absence taught me more than any master.",
+      "Sometimes I swing at shadows that look like us.",
+      "The sword is heavy; your ghost is heavier.",
+      "I still look at the horizon like you might be there.",
+      "Love turned into distance, distance turned into fire.",
+      "I walk forward, but part of me still waits for you.",
+      "They will never know how much of this started with you.",
+      "I try not to speak your name, but my heart does it anyway.",
+      "If fate had been kinder, I’d be somewhere else, holding your hand.",
+      "What I lost with you I poured into this fight.",
+      "In the quiet after battle, I miss you most.",
+      "I hope you are safe, wherever the story took you.",
+      "You are the one wound that never closes."
     ]
   },
 
   "knight": {
     "generic": {
       "intro": [
-        "You dare approach?",
-        "Face judgment.",
-        "You won't leave here."
+        "You dare defy the ordained order?",
+        "Kneel, rebel; the crown is watching.",
+        "You stand accused of treason by your very presence.",
+        "Hierarchy will correct your mistake.",
+        "Peasant steel cannot wound nobility.",
+        "Authority does not negotiate with vagrants.",
+        "You walk willingly into judgment.",
+        "The law stands behind my blade.",
+        "All rebels end up at someone’s feet. Today, mine.",
+        "Even your stance screams insubordination.",
+        "Order grants me the right to end you.",
+        "Your existence is an offense to structure.",
+        "You oppose centuries of tradition with one sword?",
+        "I have crushed dozens like you.",
+        "The crown does not recognize your struggle.",
+        "You’re here to be an example.",
+        "All roads of rebellion lead to the gallows.",
+        "The very air here belongs to the throne.",
+        "You will die nameless in service of nothing.",
+        "This will be quick; the docket is full."
       ],
       "attack": [
-        "Fall!",
-        "Perish!",
-        "Taste steel!"
+        "By decree of the crown, fall!",
+        "Feel imperial judgment!",
+        "Your rebellion ends at my blade!",
+        "Perish under lawful steel!",
+        "This strike is signed in royal ink.",
+        "Kneel beneath the weight of history!",
+        "I swing for king and kingdom!",
+        "Your ideals shatter on impact!",
+        "You face the full force of order!",
+        "Dissent has a simple cure!",
+        "I will carve obedience into your bones!",
+        "The throne sharpens my edge!",
+        "You’ve had your say; now comes the verdict!",
+        "I serve power that will outlast your memory!",
+        "Your courage is misplaced and soon dissected!",
+        "You are struck not by me but by all you defy!",
+        "I’ll cut the word 'freedom' out of your mouth!",
+        "This blow is endorsed by your betters!",
+        "Treason bleeds today!",
+        "The crown does not forgive."
       ],
       "hurt": [
-        "Ghh!",
-        "You wound me!",
-        "Impossible…"
+        "How dare you wound nobility!",
+        "Peasant strength?! Absurd!",
+        "You strike above your station!",
+        "This armor has seen wars you cannot imagine!",
+        "You test the empire’s patience!",
+        "Insignificant cut!",
+        "You mistake luck for talent!",
+        "My blood is worth more than your village!",
+        "You will pay dearly for this!",
+        "Arrogant dog!",
+        "Your defiance draws royal blood!",
+        "I will have you flayed in memory of this!",
+        "You mar perfection with that swing!",
+        "This sting will be the last you cause!",
+        "You scratch a monument and call it damage?",
+        "Such insolence from such dirt!",
+        "I am not permitted to fall to the likes of you!",
+        "You embolden other filth by striking me!",
+        "Impertinent wretch!",
+        "I will make your suffering proportional to that cut!"
       ],
       "death": [
-        "No…",
-        "I have… failed…"
+        "Empire… weakening…",
+        "My oath… wasted…",
+        "Rebellion… victorious…?",
+        "Hierarchy collapses…",
+        "The crown… fading…",
+        "I fall… and so does order…",
+        "We… were promised eternity…",
+        "All the laws… could not save me…",
+        "I die… as they watch from towers…",
+        "History… will not be kind…",
+        "The peasants… will remember this day…",
+        "I am… replaced… so easily…",
+        "The banners… burn… in my mind…",
+        "I guarded… nothing…",
+        "The throne… cannot feel this pain…",
+        "So this is what it means… to be discarded…",
+        "Your cause… was stronger…",
+        "Everything I upheld… is dust…",
+        "My armor… a coffin…",
+        "The law… did not apply… to me after all…"
+      ],
+      "roll": [
+        "Destiny favors the crown!",
+        "Let fate shame you!",
+        "Luck serves order!",
+        "The scales tilt toward hierarchy.",
+        "Your hope is misplaced!",
+        "The throne rigs even the bones.",
+        "These dice know their betters.",
+        "Chaos bends around authority.",
+        "You expect fairness? Laughable.",
+        "Even chance fears the royal seal.",
+        "I’ve never rolled beneath my station.",
+        "You gamble with more than your life.",
+        "The outcome is already written in law.",
+        "Numbers prefer the winning side.",
+        "You clutch at probability like a beggar.",
+        "Fate signs its rulings with the crown’s sigil.",
+        "We throw, but I already know the result.",
+        "Your trembling hand gives you away.",
+        "Hope all you like; the house is ours.",
+        "Even randomness pays taxes."
+      ],
+      "hit": [
+        "Dissent bleeds!",
+        "Your ideals crumble!",
+        "Fall before authority!",
+        "The crown draws your blood!",
+        "Order must be upheld!",
+        "This is the cost of your insolence!",
+        "I carve loyalty into traitors!",
+        "You stagger; hierarchy stands firm!",
+        "Your resistance is leaking out!",
+        "You feel that? That is structure reasserting itself!",
+        "Your blood stains the throne’s enemies list!",
+        "I will hang your courage from the ramparts!",
+        "Your body illustrates a powerful lesson!",
+        "You snap like every spine that opposed us!",
+        "You flinch; the system does not!",
+        "Your cause shrinks with every drop!",
+        "I make an example of your veins!",
+        "You learn obedience one cut at a time!",
+        "See how loudly revolt screams when it’s opened!",
+        "I write the verdict in red!"
+      ],
+      "pass": [
+        "Coward! Stand and die properly!",
+        "Running again, rebel?",
+        "Fight me instead of fleeing!",
+        "You dodge like a rat in the walls!",
+        "You fear the weight of justice!",
+        "Your hesitation betrays your weakness!",
+        "You cannot sidestep the crown forever!",
+        "Stop wasting my time and bleed!",
+        "You dance, but the gallows do not move!",
+        "You flee from judgment, not my blade!",
+        "Stand still and accept your sentence!",
+        "Your evasions change nothing!",
+        "You prolong the inevitable!",
+        "All this dodging just delays the punishment!",
+        "You disgrace whatever cause you serve!",
+        "I expected more spine from a rebel!",
+        "You hide behind footsteps instead of conviction!",
+        "Cowardice does not look good on you!",
+        "You’ll run out of ground eventually!",
+        "The throne does not chase vermin forever!"
       ]
     },
 
     "Ashen Revenant": {
       "intro": [
-        "Your fate was sealed long ago.",
-        "Another lost soul enters the pyre."
+        "You walk among ashes that remember better men.",
+        "The fire took my name; only duty remains.",
+        "Every breath you draw is borrowed from the pyre.",
+        "I have burned rebels down to their last excuse.",
+        "Charred cities whisper your failure ahead of time.",
+        "You stand where entire armies were cremated."
       ],
       "attack": [
-        "Burn.",
-        "Suffer."
+        "Burn with the rest!",
+        "Let the flames judge you!",
+        "Ash is the only peace you deserve!",
+        "I consign your cause to cinders!",
+        "Your scream will feed the embers!"
       ],
       "hurt": [
-        "You amuse me.",
-        "A flicker… nothing more."
+        "A spark in the inferno…",
+        "You feed the flame you oppose.",
+        "Heat does not fear your little breeze.",
+        "You scrape at embers that will consume you.",
+        "Pain? I was forged in worse."
       ],
       "death": [
-        "So the flame… flickers out…"
+        "My flame… finally rests…",
+        "Ash… returning… to ash…",
+        "The pyre… cools… at last…",
+        "I smolder… into memory…"
+      ],
+      "roll": [
+        "The embers decide your fate.",
+        "Even destiny burns in the end.",
+        "Your luck shrivels in the heat."
+      ],
+      "hit": [
+        "I scorch your resistance!",
+        "You feel the kiss of the pyre!",
+        "Your resolve chars at the edges!"
+      ],
+      "pass": [
+        "You dodge the flame? Futile.",
+        "Ash drifts faster than you move.",
+        "You will run out of places to hide from fire."
       ]
     },
 
     "Pale Judge of the Void": {
       "intro": [
-        "Silence. The verdict is death.",
-        "Your existence ends here."
+        "You stand trial before the impossible.",
+        "Judgment precedes your existence.",
+        "The void has already weighed your soul.",
+        "You are an error awaiting correction.",
+        "All rebels look the same from the abyss.",
+        "Your file is stamped 'inevitable nullification'."
       ],
       "attack": [
-        "Kneel.",
-        "Judgment."
+        "Sentence: obliteration.",
+        "The void corrects all errors.",
+        "Your pattern is deleted.",
+        "You are removed from the ledger.",
+        "I swing in the name of absolute order."
       ],
       "hurt": [
-        "Inadmissible.",
-        "You delay the inevitable."
+        "Illogical resistance.",
+        "This outcome was not predicted.",
+        "You distort the inevitable.",
+        "Anomaly detected… persisting.",
+        "You skew statistics unpleasantly."
       ],
       "death": [
-        "This outcome… unacceptable…"
+        "Verdict… reversed…",
+        "Null… becoming… zero…",
+        "I collapse… into unreason…",
+        "The record… is corrupted…"
+      ],
+      "roll": [
+        "Probability aligns with judgment.",
+        "Statistics condemn you.",
+        "Numbers whisper your end."
+      ],
+      "hit": [
+        "Deviation reduced.",
+        "Your variance diminishes.",
+        "Chaos retreats under my blade."
+      ],
+      "pass": [
+        "Evasion does not alter the verdict.",
+        "You delay only the timestamp of your deletion.",
+        "The void is patient; you are not."
+      ]
+    },
+
+    "Ironbound Shade": {
+      "intro": [
+        "Iron keeps me upright; duty keeps me moving.",
+        "You face what remains when fear is hammered out.",
+        "This armor outlived its first owner.",
+        "I am the echo of campaigns that never ended.",
+        "The clatter you hear is the weight of history.",
+        "You stand before a fortress with legs."
+      ],
+      "attack": [
+        "You crack before I do.",
+        "Feel the weight of forged obedience.",
+        "Iron does not argue; it crushes.",
+        "I advance; you yield.",
+        "You will bend before I break."
+      ],
+      "hurt": [
+        "A dent, nothing more.",
+        "You found a seam. Impressive.",
+        "The plate remembers your effort.",
+        "You rattle the shell, not the core.",
+        "I’ve marched with worse damage."
+      ],
+      "death": [
+        "At last… the rust wins…",
+        "Armor… too heavy… to rise…",
+        "They’ll just… wear another shell…",
+        "The fortress… collapses… inward…"
+      ],
+      "roll": [
+        "Iron favors the steady hand.",
+        "You shake; the metal does not.",
+        "Even chance struggles to move this weight."
+      ],
+      "hit": [
+        "I hammer cracks into your stance.",
+        "Your bones protest my advance.",
+        "You fold like cheap mail."
+      ],
+      "pass": [
+        "You skip away like a loose rivet.",
+        "Run, little crack in the wall.",
+        "Evasion only delays the collapse."
+      ]
+    },
+
+    "Bloodlit Arbiter": {
+      "intro": [
+        "I have passed sentence in rivers of red.",
+        "Every ruling I make stains the ground.",
+        "You enter a courtroom with no exits.",
+        "Your plea is already denied.",
+        "I judge with blade and bucket.",
+        "The sun sets red because of men like me."
+      ],
+      "attack": [
+        "I declare you guilty.",
+        "Your veins will sign the confession.",
+        "Appeal denied!",
+        "I hammer the verdict into your flesh.",
+        "Take this as your final testimony."
+      ],
+      "hurt": [
+        "A mistrial… brief.",
+        "You contest the ruling?",
+        "Objection sustained… momentarily.",
+        "I am not used to bleeding on my own floor.",
+        "You dare counter-argue with steel."
+      ],
+      "death": [
+        "The bench… overturned…",
+        "My gavel… falls… from grasp…",
+        "Law… drowning… in its own blood…",
+        "Case… closed… on me…"
+      ],
+      "roll": [
+        "The jury of fate convenes.",
+        "Even the dice await my ruling.",
+        "Verdict tumbles in your disfavor."
+      ],
+      "hit": [
+        "I stamp you with guilt.",
+        "You bleed on the record.",
+        "My argument cuts deep."
+      ],
+      "pass": [
+        "You postpone your sentencing.",
+        "The docket will not forget you.",
+        "Run all you like; I hold the warrant."
+      ]
+    },
+
+    "Abyss-Tethered Knight": {
+      "intro": [
+        "Something deep below keeps me standing.",
+        "My leash leads straight into darkness.",
+        "You see only the armor; not the shadows inside.",
+        "I am permitted to exist as long as I kill.",
+        "The abyss stares back through my visor.",
+        "You fight a puppet with a very sharp string."
+      ],
+      "attack": [
+        "The abyss pulls my arm for me.",
+        "You will be another silhouette down there.",
+        "Fall into the dark I serve.",
+        "I swing so I do not get dragged under.",
+        "The void enjoys fresh echoes."
+      ],
+      "hurt": [
+        "The string… trembles…",
+        "You jolt the darkness slightly.",
+        "Pain is nothing compared to that pull.",
+        "I bleed, but I do not own this blood.",
+        "You cut the armor; not the horror."
+      ],
+      "death": [
+        "The tether… snaps…",
+        "I sink… alone…",
+        "No more… pulling…",
+        "At last… I am not required…"
+      ],
+      "roll": [
+        "The abyss likes to play games.",
+        "Even fate is on a leash.",
+        "Something below us chews on the odds."
+      ],
+      "hit": [
+        "You feel a fraction of its hunger.",
+        "The dark grins through the wound.",
+        "You are marked for deeper places."
+      ],
+      "pass": [
+        "You step away from the edge. Wise.",
+        "Not eager to glimpse what drags me?",
+        "You dodge, but the pull is patient."
       ]
     }
   }
