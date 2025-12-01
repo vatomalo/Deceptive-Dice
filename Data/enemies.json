@@ -1,0 +1,196 @@
+{
+  "enemies": [
+    {
+      "id": "novice_knight",
+      "name": "Novice Knight",
+      "minKills": 0,
+      "maxKills": 4,
+      "baseHP": 5,
+      "baseSTR": 1,
+      "baseAGI": 1,
+      "baseDEF": 1,
+      "materiaChance": 0.03
+    },
+    {
+      "id": "graveyard_page",
+      "name": "Graveyard Page",
+      "minKills": 0,
+      "maxKills": 4,
+      "baseHP": 8,
+      "baseSTR": 2,
+      "baseAGI": 1,
+      "baseDEF": 1,
+      "materiaChance": 0.05
+    },
+
+    {
+      "id": "rusted_squire",
+      "name": "Rusted Squire",
+      "minKills": 5,
+      "maxKills": 9,
+      "baseHP": 14,
+      "baseSTR": 2,
+      "baseAGI": 1,
+      "baseDEF": 2,
+      "materiaChance": 0.08
+    },
+    {
+      "id": "hollow_footman",
+      "name": "Hollow Footman",
+      "minKills": 5,
+      "maxKills": 9,
+      "baseHP": 18,
+      "baseSTR": 3,
+      "baseAGI": 2,
+      "baseDEF": 2,
+      "materiaChance": 0.10
+    },
+    {
+      "id": "knight_standard",
+      "name": "Knight",
+      "minKills": 5,
+      "maxKills": 9,
+      "baseHP": 20,
+      "baseSTR": 3,
+      "baseAGI": 2,
+      "baseDEF": 3,
+      "materiaChance": 0.12
+    },
+
+    {
+      "id": "ironbound_shade",
+      "name": "Ironbound Shade",
+      "minKills": 10,
+      "maxKills": 19,
+      "baseHP": 32,
+      "baseSTR": 4,
+      "baseAGI": 3,
+      "baseDEF": 4,
+      "materiaChance": 0.16
+    },
+    {
+      "id": "hollowed_warden",
+      "name": "Hollowed Warden",
+      "minKills": 10,
+      "maxKills": 19,
+      "baseHP": 38,
+      "baseSTR": 5,
+      "baseAGI": 3,
+      "baseDEF": 4,
+      "materiaChance": 0.18
+    },
+    {
+      "id": "grave_forged_sentinel",
+      "name": "Grave-Forged Sentinel",
+      "minKills": 10,
+      "maxKills": 19,
+      "baseHP": 45,
+      "baseSTR": 6,
+      "baseAGI": 3,
+      "baseDEF": 5,
+      "materiaChance": 0.20
+    },
+
+    {
+      "id": "ashen_revenant",
+      "name": "Ashen Revenant",
+      "minKills": 20,
+      "maxKills": 34,
+      "baseHP": 70,
+      "baseSTR": 8,
+      "baseAGI": 4,
+      "baseDEF": 6,
+      "materiaChance": 0.25
+    },
+    {
+      "id": "blackstar_accuser",
+      "name": "Blackstar Accuser",
+      "minKills": 20,
+      "maxKills": 34,
+      "baseHP": 85,
+      "baseSTR": 9,
+      "baseAGI": 5,
+      "baseDEF": 6,
+      "materiaChance": 0.28
+    },
+    {
+      "id": "bloodlit_arbiter",
+      "name": "Bloodlit Arbiter",
+      "minKills": 20,
+      "maxKills": 34,
+      "baseHP": 95,
+      "baseSTR": 10,
+      "baseAGI": 5,
+      "baseDEF": 7,
+      "materiaChance": 0.30
+    },
+
+    {
+      "id": "void_tethered_knight",
+      "name": "Abyss-Tethered Knight",
+      "minKills": 35,
+      "maxKills": 59,
+      "baseHP": 140,
+      "baseSTR": 14,
+      "baseAGI": 7,
+      "baseDEF": 9,
+      "materiaChance": 0.40
+    },
+    {
+      "id": "pale_judge",
+      "name": "Pale Judge of the Void",
+      "minKills": 35,
+      "maxKills": 59,
+      "baseHP": 170,
+      "baseSTR": 16,
+      "baseAGI": 7,
+      "baseDEF": 10,
+      "materiaChance": 0.42
+    },
+    {
+      "id": "locus_of_regret",
+      "name": "Locus of Regret",
+      "minKills": 35,
+      "maxKills": 59,
+      "baseHP": 190,
+      "baseSTR": 18,
+      "baseAGI": 8,
+      "baseDEF": 11,
+      "materiaChance": 0.45
+    },
+
+    {
+      "id": "nameless_inquisitor",
+      "name": "Nameless Inquisitor",
+      "minKills": 60,
+      "maxKills": null,
+      "baseHP": 260,
+      "baseSTR": 22,
+      "baseAGI": 9,
+      "baseDEF": 13,
+      "materiaChance": 0.55
+    },
+    {
+      "id": "crownless_regicide",
+      "name": "Crownless Regicide",
+      "minKills": 60,
+      "maxKills": null,
+      "baseHP": 320,
+      "baseSTR": 25,
+      "baseAGI": 10,
+      "baseDEF": 14,
+      "materiaChance": 0.60
+    },
+    {
+      "id": "last_witness",
+      "name": "Last Witness of the Pale Sun",
+      "minKills": 80,
+      "maxKills": null,
+      "baseHP": 420,
+      "baseSTR": 30,
+      "baseAGI": 12,
+      "baseDEF": 16,
+      "materiaChance": 0.70
+    }
+  ]
+}

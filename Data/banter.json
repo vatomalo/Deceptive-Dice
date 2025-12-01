@@ -1,0 +1,84 @@
+{
+  "samurai": {
+    "roll": [
+      "Let fate speak.",
+      "Reveal yourself.",
+      "Steady…"
+    ],
+    "attack": [
+      "Cut through.",
+      "Your guard is open.",
+      "I'll end this."
+    ],
+    "hurt": [
+      "Tch…",
+      "Sloppy.",
+      "I misread that."
+    ],
+    "win": [
+      "Rest.",
+      "Next.",
+      "Another falls."
+    ]
+  },
+
+  "knight": {
+    "generic": {
+      "intro": [
+        "You dare approach?",
+        "Face judgment.",
+        "You won't leave here."
+      ],
+      "attack": [
+        "Fall!",
+        "Perish!",
+        "Taste steel!"
+      ],
+      "hurt": [
+        "Ghh!",
+        "You wound me!",
+        "Impossible…"
+      ],
+      "death": [
+        "No…",
+        "I have… failed…"
+      ]
+    },
+
+    "Ashen Revenant": {
+      "intro": [
+        "Your fate was sealed long ago.",
+        "Another lost soul enters the pyre."
+      ],
+      "attack": [
+        "Burn.",
+        "Suffer."
+      ],
+      "hurt": [
+        "You amuse me.",
+        "A flicker… nothing more."
+      ],
+      "death": [
+        "So the flame… flickers out…"
+      ]
+    },
+
+    "Pale Judge of the Void": {
+      "intro": [
+        "Silence. The verdict is death.",
+        "Your existence ends here."
+      ],
+      "attack": [
+        "Kneel.",
+        "Judgment."
+      ],
+      "hurt": [
+        "Inadmissible.",
+        "You delay the inevitable."
+      ],
+      "death": [
+        "This outcome… unacceptable…"
+      ]
+    }
+  }
+}
