@@ -1,0 +1,19 @@
+{
+  "default_stage": [
+    {
+      "src": "Artwork/BG/Default_Stage/Plant3.png",
+      "x": 140,
+      "scale": 13
+    },
+    {
+      "src": "Artwork/BG/Default_Stage/Plant2.png",
+      "x": 420,
+      "scale": 10
+    },
+    {
+      "src": "Artwork/BG/Default_Stage/Plant1.png",
+      "x": 670,
+      "scale": 10
+    }
+  ]
+}

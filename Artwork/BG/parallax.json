@@ -1,0 +1,41 @@
+{
+  "default_stage": {
+    "layers": [
+      {
+        "src": "Artwork/BG/Default_Stage/0_sky.png",
+        "speed": 0.10,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_stars.png",
+        "speed": 0.15,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_stars_trail.png",
+        "speed": 0.25,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_spaceship.png",
+        "speed": 0.40,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/2_clouds.png",
+        "speed": 0.60,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/3_city.png",
+        "speed": 1.00,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/4_ground.png",
+        "speed": 0,
+        "static": true
+      }
+    ]
+  }
+}
