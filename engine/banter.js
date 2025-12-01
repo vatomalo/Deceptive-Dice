@@ -1,0 +1,153 @@
+// =======================================================
+// banter.js — Dynamic Manga Panel Banter System (JSON)
+// =======================================================
+console.log("banter.js loaded");
+
+(function() {
+
+    class BanterMessage {
+        constructor(text, side, duration = 2300) {
+            this.text = text;
+            this.side = side;
+            this.duration = duration;
+            this.timer = 0;
+        }
+
+        get alive() {
+            return this.timer < this.duration;
+        }
+
+        get alpha() {
+            const t = this.timer / this.duration;
+            if (t < 0.7) return 1;
+            return Math.max(0, 1 - (t - 0.7) / 0.3);
+        }
+    }
+
+    const Banter = {
+        messages: [],
+        lines: null,
+        ready: false,
+
+        load() {
+            fetch("Data/banter.json")
+                .then(res => res.json())
+                .then(json => {
+                    this.lines = json;
+                    this.ready = true;
+                    console.log("Banter JSON loaded");
+                })
+                .catch(err => console.error("Banter JSON load failed:", err));
+        },
+
+        hasMessages() {
+            return this.messages.some(m => m.alive);
+        },
+
+        push(text, side = "left", duration) {
+            if (!text) return;
+
+            // One message per side at a time
+            this.messages = this.messages.filter(m => m.side !== side);
+
+            const msg = new BanterMessage(text, side, duration);
+            this.messages.push(msg);
+        },
+
+        // Get a list of lines: actor = samurai | knight
+        findLines(actor, category, enemyName = null) {
+            if (!this.ready || !this.lines) return null;
+
+            const root = this.lines[actor];
+            if (!root) return null;
+
+            // Samurai only has categories
+            if (actor === "samurai") {
+                return root[category] || null;
+            }
+
+            // Knights:
+
+            // 1) Match enemy by name if exists
+            if (enemyName && root[enemyName] && root[enemyName][category]) {
+                return root[enemyName][category];
+            }
+
+            // 2) fallback to generic
+            if (root.generic && root.generic[category]) {
+                return root.generic[category];
+            }
+
+            return null;
+        },
+
+        say(actor, category, enemyName = null) {
+            const list = this.findLines(actor, category, enemyName);
+            if (!list || !list.length) return;
+
+            const pick = list[Math.floor(Math.random() * list.length)];
+
+            const side =
+                actor === "samurai" ? "left" :
+                actor === "knight"  ? "right" :
+                "center";
+
+            this.push(pick, side);
+        },
+
+        update(dt) {
+            this.messages = this.messages.filter(m => {
+                m.timer += dt;
+                return m.alive;
+            });
+        },
+
+        draw(ctx, canvas) {
+            if (!this.messages.length) return;
+
+            ctx.save();
+            ctx.font = "18px pixel";
+            ctx.textBaseline = "middle";
+
+            const panelH = 48;
+            const marginY = 72;
+            const padX = 12;
+            const padY = 10;
+
+            for (const msg of this.messages) {
+                if (!msg.alive) continue;
+
+                const alpha = msg.alpha;
+                ctx.globalAlpha = alpha;
+
+                const textWidth = ctx.measureText(msg.text).width;
+                const panelW = Math.max(180, textWidth + padX * 2);
+
+                let x;
+                if (msg.side === "left")       x = 24;
+                else if (msg.side === "right") x = canvas.width - panelW - 24;
+                else                           x = (canvas.width - panelW) / 2;
+
+                const y = marginY;
+
+                // panel fill
+                ctx.fillStyle = "rgba(255,255,255,0.95)";
+                ctx.fillRect(x, y, panelW, panelH);
+
+                // border
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "black";
+                ctx.strokeRect(x, y, panelW, panelH);
+
+                // text
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText(msg.text, x + panelW / 2, y + panelH / 2 + 1);
+            }
+
+            ctx.restore();
+        }
+    };
+
+    window.Banter = Banter;
+})();
