@@ -197,25 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
         startGame();
     };
 
-    // ----------------------------------------------------
-    // Screen gamecoords fix
-    // ----------------------------------------------------
-    window.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.getElementById("game-canvas");
-
-    canvas.addEventListener("click", evt => {
-        const { x, y } = getGameCoords(evt);
-        handleCanvasClick(x, y);
-    });
-
-    canvas.addEventListener("touchstart", evt => {
-        const { x, y } = getGameCoords(evt);
-        handleCanvasClick(x, y);
-        evt.preventDefault();
-    });
-});
-
-
 
     // ----------------------------------------------------
     // MUSIC-MOOD HOOKS
