@@ -7,7 +7,7 @@ console.log("combat.js loaded");
 
 // Small impact freeze
 const hitStop = (ms) => new Promise(res => setTimeout(res, ms));
-const wait    = (ms) => new Promise(res => setTimeout(res, ms));
+const wait = (ms) => new Promise(res => setTimeout(res, ms));
 
 // Outcome of last roll: "player", "enemy", "draw" or null
 window.lastDiceOutcome = null;
@@ -252,7 +252,7 @@ window.knightDeath = async function () {
     knight.setState("idle");
 
     CurrentEnemy.hp = CurrentEnemy.maxHP;
-    hpKnight.maxHP  = CurrentEnemy.maxHP;
+    hpKnight.maxHP = CurrentEnemy.maxHP;
     hpKnight.setHP(CurrentEnemy.hp);
 
     console.log("Respawned:", CurrentEnemy);
@@ -267,7 +267,7 @@ async function handlePlayerWinRound() {
     DiceSmoke.stop();
     xbar.disable();
     if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy)  dice.enemy.clear();
+    if (dice && dice.enemy) dice.enemy.clear();
 
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
@@ -279,7 +279,7 @@ async function handlePlayerWinRound() {
     }
 
     let base = Math.max(1, playerFace - enemyFace) * 10;
-    let dmg  = computePlayerDamage(base);
+    let dmg = computePlayerDamage(base);
 
     if (tryCrit()) {
         dmg *= 2;
@@ -344,7 +344,7 @@ async function handleEnemyWinRound() {
     DiceSmoke.stop();
     xbar.disable();
     if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy)  dice.enemy.clear();
+    if (dice && dice.enemy) dice.enemy.clear();
 
     if (window.EnemyStamina && EnemyStamina.regen) {
         EnemyStamina.regen();
@@ -434,7 +434,7 @@ async function handleDrawRound() {
     DiceSmoke.stop();
     xbar.disable();
     if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy)  dice.enemy.clear();
+    if (dice && dice.enemy) dice.enemy.clear();
 
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "roll");
@@ -445,10 +445,10 @@ async function handleDrawRound() {
     knight.setState("run");
 
     samurai.flip = true;
-    knight.flip  = false;
+    knight.flip = false;
 
     const samuraiBack = samurai.x - 120;
-    const knightBack  = knight.x + 120;
+    const knightBack = knight.x + 120;
 
     for (let i = 0; i < 6; i++) {
         if (fxManager && fxManager.spawnDust) {
@@ -463,7 +463,7 @@ async function handleDrawRound() {
     ]);
 
     samurai.flip = false;
-    knight.flip  = true;
+    knight.flip = true;
 
     await Promise.all([
         samurai.moveTo(120, 15),
@@ -481,10 +481,19 @@ async function handlePassRound() {
     DiceSmoke.stop();
     xbar.disable();
     if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy)  dice.enemy.clear();
+    if (dice && dice.enemy) dice.enemy.clear();
 
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
+    }
+
+    if (window.Banter && Banter.say) {
+        if (Math.random() < 0.02) {
+            Banter.say("samurai", "tina_rare");
+        } else {
+            Banter.say("samurai", "pass");
+        }
+        Banter.say("knight", "pass", CurrentEnemy?.name);
     }
 
     const originalFlip = samurai.flip;
@@ -563,7 +572,7 @@ async function revealDice(outcome) {
     }
 
     if (dice.player) dice.player.bounceVel = -8;
-    if (dice.enemy)  dice.enemy.bounceVel  = -8;
+    if (dice.enemy) dice.enemy.bounceVel = -8;
 
     await wait(180);
 

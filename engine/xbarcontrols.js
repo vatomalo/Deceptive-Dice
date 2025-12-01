@@ -1,5 +1,6 @@
 // =======================================================
 // XBAR CONTROL SYSTEM — FINAL COMBAT-SAFE VERSION
+// + Keyboard (Z/X/C + Shift) + Gamepad bindings
 // =======================================================
 console.log("xbarcontrols.js loaded");
 
@@ -77,7 +78,7 @@ class XBarButton {
 // ----------------------------------------------------
 class XBarControls {
     constructor(ctx, game, samurai) {
-        this.ctx = ctx;
+        this.ctx  = ctx;
         this.game = game;
 
         // Buttons
@@ -88,6 +89,10 @@ class XBarControls {
         // UI modes
         this.mode = "roll";     // "roll" or "combat"
         this.lock = false;      // prevents double tapping
+
+        // Bind global inputs (only first instance actually hooks)
+        bindXBarKeyboardControls();
+        startXBarGamepadLoop();
     }
 
     // ------------------------------------------------
@@ -150,7 +155,7 @@ class XBarControls {
 
 
     // ------------------------------------------------
-    // CLICK HANDLER
+    // CLICK HANDLER (mouse / touch via canvas)
     // ------------------------------------------------
     handleClick(mx, my) {
 
@@ -177,6 +182,156 @@ class XBarControls {
             this.passBtn.draw(this.ctx);
         }
     }
+}
+
+
+// =======================================================
+// GLOBAL INPUT BINDINGS (Keyboard + Gamepad)
+// =======================================================
+
+// -------------------------------
+// KEYBOARD → XBAR + Materia menu
+// -------------------------------
+function bindXBarKeyboardControls() {
+    if (window._xbarKeysBound) return;
+    window._xbarKeysBound = true;
+
+    document.addEventListener("keydown", e => {
+        const key = e.key;
+        const xb  = window.xbar;
+
+        // ---------------------------
+        // Materia menu toggle (Shift)
+        // ---------------------------
+        if (key === "Shift") {
+            window.materiaMenuOpen = !window.materiaMenuOpen;
+            return;
+        }
+
+        // While Materia menu is open:
+        // ignore combat keys
+        if (window.materiaMenuOpen) {
+            return;
+        }
+
+        // No XBar yet → ignore combat keys
+        if (!xb) return;
+
+        // ---------------------------
+        // Z → ROLL (roll mode only)
+        // ---------------------------
+        if (key === "z" || key === "Z") {
+            e.preventDefault();
+
+            if (xb.mode === "roll") {
+                xb.tryPress("roll");
+            }
+            return;
+        }
+
+        // ---------------------------
+        // X → ATTACK (combat only)
+// ---------------------------
+        if (key === "x" || key === "X") {
+            e.preventDefault();
+
+            if (xb.mode === "combat") {
+                xb.tryPress("attack");
+            }
+            return;
+        }
+
+        // ---------------------------
+        // C → PASS (combat only)
+        // ---------------------------
+        if (key === "c" || key === "C") {
+            e.preventDefault();
+
+            if (xb.mode === "combat") {
+                xb.tryPress("pass");
+            }
+            return;
+        }
+
+        // WASD intentionally free for future menu navigation / movement
+    });
+}
+
+
+// -------------------------------
+// GAMEPAD → XBAR + Materia menu
+// -------------------------------
+function startXBarGamepadLoop() {
+
+    if (!navigator.getGamepads) {
+        console.warn("Gamepad API not supported.");
+        return;
+    }
+
+    if (window._xbarGamepadLoop) return;
+    window._xbarGamepadLoop = true;
+
+    let prevButtons = [];
+
+    function pollGamepad() {
+        const pads = navigator.getGamepads ? navigator.getGamepads() : null;
+        const gp   = pads && pads[0] ? pads[0] : null;
+
+        if (!gp) {
+            requestAnimationFrame(pollGamepad);
+            return;
+        }
+
+        if (!prevButtons.length || prevButtons.length !== gp.buttons.length) {
+            prevButtons = gp.buttons.map(b => !!b.pressed);
+        }
+
+        const justPressed = (index) =>
+            gp.buttons[index] &&
+            gp.buttons[index].pressed &&
+            !prevButtons[index];
+
+        const xb = window.xbar;
+
+        // ------------------------------------------------
+        // Button index map (standard layout):
+        // 0 = A / Cross      → primary (roll/attack)
+        // 1 = B / Circle     → secondary (pass)
+        // 8 = Select / Back  → toggle materia menu
+        // ------------------------------------------------
+
+        // SELECT toggles Materia menu
+        if (justPressed(8)) {
+            window.materiaMenuOpen = !window.materiaMenuOpen;
+        }
+
+        // If materia menu open → ignore XBar actions
+        if (!window.materiaMenuOpen && xb) {
+
+            // A / Cross = primary
+            if (justPressed(0)) {
+                if (xb.mode === "roll") {
+                    xb.tryPress("roll");
+                } else if (xb.mode === "combat") {
+                    xb.tryPress("attack");
+                }
+            }
+
+            // B / Circle = PASS
+            if (justPressed(1) && xb.mode === "combat") {
+                xb.tryPress("pass");
+            }
+        }
+
+        // Update previous button states
+        for (let i = 0; i < gp.buttons.length; i++) {
+            prevButtons[i] = gp.buttons[i].pressed;
+        }
+
+        requestAnimationFrame(pollGamepad);
+    }
+
+    requestAnimationFrame(pollGamepad);
 }
 
 

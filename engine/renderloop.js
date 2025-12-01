@@ -19,7 +19,7 @@ console.log("renderloop.js loaded");
     function drawMateriaMenu(ctx, canvas) {
         if (!window.materiaMenuOpen) return;
 
-        const W = canvas.width  - 160;
+        const W = canvas.width - 160;
         const H = canvas.height - 120;
         const X = 80;
         const Y = 60;
@@ -28,27 +28,27 @@ console.log("renderloop.js loaded");
 
         // Panel
         ctx.globalAlpha = 0.92;
-        ctx.fillStyle   = "rgba(0,0,0,0.85)";
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
         ctx.fillRect(X, Y, W, H);
 
         ctx.globalAlpha = 1;
         ctx.strokeStyle = "white";
-        ctx.lineWidth   = 3;
+        ctx.lineWidth = 3;
         ctx.strokeRect(X, Y, W, H);
 
         ctx.fillStyle = "white";
-        ctx.font      = "22px pixel";
+        ctx.font = "22px pixel";
         ctx.textAlign = "left";
         ctx.fillText("MATERIA", X + 24, Y + 40);
 
         ctx.font = "16px pixel";
 
-        const inv  = window.MateriaInventory || [];
+        const inv = window.MateriaInventory || [];
         const slot = window.Materia || {};
-        let y      = Y + 90;
+        let y = Y + 90;
 
         for (let i = 0; i < inv.length; i++) {
-            const key   = inv[i];
+            const key = inv[i];
             const owned = !!slot[key];
 
             const marker = owned ? "●" : "○";
@@ -65,7 +65,7 @@ console.log("renderloop.js loaded");
     function renderLoop() {
 
         const now = performance.now();
-        const dt  = 16 * (window.timeScale || 1);
+        const dt = 16 * (window.timeScale || 1);
 
         //-------- stamina regen ----------------
         if (window.updateStamina) {
@@ -76,7 +76,7 @@ console.log("renderloop.js loaded");
             PlayerStamina.current = Math.min(PlayerStamina.max, PlayerStamina.current + PlayerStamina.regenRate);
         }
         if (window.EnemyStamina) {
-            EnemyStamina.current  = Math.min(EnemyStamina.max, EnemyStamina.current + EnemyStamina.regenRate);
+            EnemyStamina.current = Math.min(EnemyStamina.max, EnemyStamina.current + EnemyStamina.regenRate);
         }
 
         // ---------------- flash fade ----------------
@@ -118,8 +118,8 @@ console.log("renderloop.js loaded");
         dice.player.x = samurai.x;
         dice.player.y = samurai.y - 165;
 
-        dice.enemy.x  = knight.x;
-        dice.enemy.y  = knight.y - 175;
+        dice.enemy.x = knight.x;
+        dice.enemy.y = knight.y - 175;
 
         dice.player.update(dt, now);
         dice.enemy.update(dt, now);
@@ -143,12 +143,12 @@ console.log("renderloop.js loaded");
 
         // ===================================================
         // SMOKE FX (DiceSmoke)
-// ===================================================
+        // ===================================================
         const attacking =
             samurai.state === "attack" ||
-            samurai.state === "run"    ||
-            knight.state  === "attack" ||
-            knight.state  === "run";
+            samurai.state === "run" ||
+            knight.state === "attack" ||
+            knight.state === "run";
 
         if (DiceSmoke.emitting && !attacking && !window.hideDice) {
             DiceSmoke.drip(dice.enemy, dt);
@@ -218,10 +218,10 @@ console.log("renderloop.js loaded");
             const size = 42;
 
             // tweak these if you want to move it later
-            const marginRight  = 10;
+            const marginRight = 10;
             const marginBottom = 0; // negative = even closer to the bottom edge
 
-            const fx = canvas.width  - size - marginRight;
+            const fx = canvas.width - size - marginRight;
             const fy = canvas.height - size - marginBottom;
 
             ctx.drawImage(fullscreenImg, fx, fy, size, size);
@@ -234,7 +234,7 @@ console.log("renderloop.js loaded");
         if (flashScreen > 0) {
             ctx.save();
             ctx.globalAlpha = flashScreen * 0.45;
-            ctx.fillStyle   = window.flashColor || "#FFFFFF";
+            ctx.fillStyle = window.flashColor || "#FFFFFF";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
         }
