@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Deceptive Dice</title>
+    <!--<link rel="stylesheet" href="CSS/style.css">-->
+</head>
+
+<body>
+
+<div id="title-screen">
+    <button id="start-btn">START GAME</button>
+</div>
+
+<div id="game-ui">
+    <div id="health-bars">
+        <div id="player-health-bar" class="health-bar">
+            <div class="health-fill" id="player-health-fill"></div>
+
+</div>
+<!--<div id="text-output"></div>-->
+
+<audio id="audioPlayer" preload="auto"></audio>
+<canvas id="game-canvas" width="640" height="360"></canvas>
+
+
+<!-- LOAD IN THE ONLY WORKING ORDER-->
+<script src="engine/spritesheetanimator.js"></script>
+<script src="engine/parallaxBG.js"></script>
+<script src="engine/decorsystem.js"></script>
+<script src="engine/fx.js"></script>
+
+<script src="engine/charactersystem.js"></script>
+<script src="engine/fxsystem_character.js"></script>
+<script src="engine/damagenumbers.js"></script>
+
+<script src="engine/combat.js"></script>
+
+<script src="engine/stamina.js"></script>
+<script src="engine/statsystem.js"></script>
+<script src="engine/materiasystem.js"></script>
+
+<script src="engine/dicesystem.js"></script>
+<script src="engine/dice-smoke.js"></script>
+
+<script src="engine/materiasystem.js"></script>
+
+<script src="engine/ui-nameplates.js"></script>
+<script src="engine/ui-bars.js"></script>
+
+<script src="engine/enemysystem.js"></script>   <!-- MUST BE BEFORE main.js -->
+
+<script src="engine/xbarcontrols.js"></script>
+<script src="engine/BGMsystem.js"></script>
+<script src="engine/announcer.js"></script>
+<script src="engine/weatherfx.js"></script>
+<script src="engine/weatherdirector.js"></script>
+<script src="engine/palettesystem.js"></script>
+
+<script src="engine/main.js"></script>
+<script src="engine/helpers.js"></script>
+
+<script src="engine/renderloop.js"></script> <!-- ALWAYS LAST -->
+
+
+<!--<script defer src="JS/sprites.js"></script>
+<script defer src="JS/fx.js"></script>
+<script defer src="JS/character.js"></script>
+<script defer src="JS/paralaxBG.js"></script>
+<script defer src="JS/macaw.js"></script>
+<script defer src="JS/decor.js"></script>
+<script defer src="JS/tinter.js"></script>
+<script defer src="JS/dice.js"></script>
+<script defer src="JS/rps.js"></script>
+<script defer src="JS/soundsystem.js"></script>
+<script defer src="JS/music.js"></script>
+<script defer src="JS/announcer.js"></script>
+<script defer src="JS/xbarcontrols.js"></script>
+<script defer src="JS/system.js"></script>
+<script defer src="JS/healthbar.js"></script>
+<script defer src="JS/damagenumbers.js"></script>
+<script defer src="JS/gameloop.js"></script>-->
+
+</body>
+</html>
