@@ -189,7 +189,7 @@ console.log("stancesystem.js loaded");
 
     // TODO: point this to the same sprite you use in your death FX
     const stanceKatanaImg = new Image();
-    stanceKatanaImg.src = "./Artwork/FX/Katana_UI.png";
+    stanceKatanaImg.src = "./Artwork/FX/Katana.png";
 
     const NAMEPLATE_W = 220;
     const NAMEPLATE_H = 28;
