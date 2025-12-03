@@ -1,7 +1,7 @@
 // =======================================================
 // combat.js — Dice revealed ONLY on ATTACK + Stamina
 // + Banter hooks + Katana & Blood FX for deaths
-// + Spirit Hearts (continues)
+// + Spirit Hearts (continues) + SFX hooks (ONCE per sequence)
 // =======================================================
 
 console.log("combat.js loaded");
@@ -9,6 +9,40 @@ console.log("combat.js loaded");
 // Small impact freeze
 const hitStop = (ms) => new Promise(res => setTimeout(res, ms));
 const wait    = (ms) => new Promise(res => setTimeout(res, ms));
+
+// -------------------------------------------------------
+// SFX helper with per-category cooldown
+// -------------------------------------------------------
+const _sfxLastPlay = {};  // category → timestamp
+
+function playSFX(category, volume = 1.0) {
+    if (!window.SFX || typeof SFX.play !== "function") return;
+
+    const now = (window.performance && performance.now)
+        ? performance.now()
+        : Date.now();
+
+    const last = _sfxLastPlay[category] || 0;
+
+    // Don't let the same category fire more than once every 280ms
+    const COOLDOWN = 280;
+    if (now - last < COOLDOWN) {
+        return;
+    }
+
+    _sfxLastPlay[category] = now;
+    SFX.play(category, volume);
+}
+
+// per-sequence "only once per category"
+function makeSFXOnce() {
+    const played = {};
+    return function (category, volume = 1.0) {
+        if (played[category]) return;
+        played[category] = true;
+        playSFX(category, volume);
+    };
+}
 
 // Outcome of last roll: "player", "enemy", "draw" or null
 window.lastDiceOutcome = null;
@@ -45,8 +79,13 @@ function hasMateriaNote() {
 // =======================================================
 async function knightRespawnSequence() {
 
+    const sfxOnce = makeSFXOnce();
+
     DiceSmoke.stop();
     xbar.disable();
+
+    // New knight incoming → subtle UI cue
+    sfxOnce("ui", 0.6);
 
     knight.alpha = 1;
     knight.setState("run");
@@ -55,6 +94,9 @@ async function knightRespawnSequence() {
     // Start off-screen on the right
     knight.x = canvas.width + 80;
 
+    // Footstep as he starts charging in
+    sfxOnce("step", 0.7);
+
     for (let i = 0; i < 8; i++) {
         if (window.fxManager && fxManager.spawnDust) fxManager.spawnDust(knight);
     }
@@ -62,6 +104,7 @@ async function knightRespawnSequence() {
     // Run back to home position
     await knight.moveTo(420, 15);
 
+    // Could play another step if you WANT two, but you asked once, so we keep it quiet here
     knight.setState("idle");
 
     if (window.EnemyStamina && EnemyStamina.reset) {
@@ -84,6 +127,7 @@ async function knightRespawnSequence() {
 // =======================================================
 async function samuraiRespawnSequence() {
 
+    const sfxOnce = makeSFXOnce();
     const originalFlip = samurai.flip;
 
     DiceSmoke.stop();
@@ -97,9 +141,11 @@ async function samuraiRespawnSequence() {
     // Angel spark on death position (guarded)
     if (window.fxManager && fxManager.spawnAngelSpark) {
         fxManager.spawnAngelSpark(samurai.x, samurai.y - 60);
+        sfxOnce("ui", 0.7);
     }
 
-    // Blink back home
+    // Blink back home (ninja vanish style)
+    sfxOnce("dodge", 0.7);
     await samurai.blinkTo(SAMURAI_HOME_X, SAMURAI_HOME_Y);
 
     samurai.flip = originalFlip;
@@ -128,6 +174,8 @@ window.addEventListener("SAMURAI_RESPAWN_EVENT", async () => {
 // =======================================================
 window.samuraiDeath = async function () {
 
+    const sfxOnce = makeSFXOnce();
+
     console.log("Player death triggered");
 
     xbar.disable();
@@ -141,6 +189,7 @@ window.samuraiDeath = async function () {
     // Katana spin upwards from body
     if (typeof spawnKatanaFX === "function") {
         spawnKatanaFX(samurai.x + 6, samurai.y - 90);
+        sfxOnce("swing", 0.9);
     }
 
     // Small brace pose
@@ -150,6 +199,7 @@ window.samuraiDeath = async function () {
     // Blood burst
     if (typeof spawnBloodFX === "function") {
         spawnBloodFX(samurai.x, samurai.y - 50, 20);
+        sfxOnce("hit", 0.95);
     }
 
     // Fade out samurai
@@ -167,6 +217,8 @@ window.samuraiDeath = async function () {
         loop();
     });
 
+    sfxOnce("death", 0.9);
+
     await knight.moveTo(420, 18);
 
     // ---- CONTINUE LOGIC (Spirit Hearts) ----
@@ -174,6 +226,7 @@ window.samuraiDeath = async function () {
     if (hasExtraLife) {
         PlayerHearts = Math.max(0, PlayerHearts - 1);
         console.log("Continue used. Remaining hearts:", PlayerHearts);
+        sfxOnce("ui", 0.8);
     } else {
         console.log("No hearts left: full run reset.");
     }
@@ -191,11 +244,9 @@ window.samuraiDeath = async function () {
     samurai.setState("idle");
 
     if (window.hpSamurai) {
-        // Full heal on respawn (soft or hard)
         hpSamurai.setHP(hpSamurai.maxHP);
     }
 
-    // Ensure stamina full on any respawn
     if (window.PlayerStamina) {
         if (PlayerStamina.reset) {
             PlayerStamina.reset();
@@ -215,6 +266,8 @@ window.samuraiDeath = async function () {
 // =======================================================
 window.knightDeath = async function () {
 
+    const sfxOnce = makeSFXOnce();
+
     console.log("Knight death triggered");
 
     xbar.disable();
@@ -228,9 +281,11 @@ window.knightDeath = async function () {
     // Blood on knight
     if (typeof spawnBloodFX === "function") {
         spawnBloodFX(knight.x, knight.y - 60, 24);
+        sfxOnce("hit", 0.95);
     }
 
     knight.setState("death");
+    sfxOnce("death", 0.9);
     await wait(300);
 
     // Fade out knight
@@ -276,6 +331,8 @@ window.knightDeath = async function () {
             if (window.Banter && Banter.say) {
                 Banter.say("samurai", "found");
             }
+
+            sfxOnce("ui", 0.9);
         }
     } catch (e) {
         console.warn("Materia drop failed:", e);
@@ -311,6 +368,8 @@ window.knightDeath = async function () {
 // =======================================================
 async function handlePlayerWinRound() {
 
+    const sfxOnce = makeSFXOnce();
+
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
@@ -343,6 +402,8 @@ async function handlePlayerWinRound() {
         if (hasMateriaNote()) {
             Banter.materiaNote("enemy", "crit", 1);
         }
+
+        sfxOnce("hit", 1.0);
     }
 
     if (typeof tryMultihit === "function" && tryMultihit("player")) {
@@ -365,12 +426,14 @@ async function handlePlayerWinRound() {
 
     // APPROACH
     samurai.setState("run");
+    sfxOnce("step", 0.7);
     await samurai.moveTo(knight.x - 70, 18);
 
     await wait(60);
 
     // ATTACK
     samurai.setState("attack");
+    sfxOnce("swing", 0.9);
 
     if (window.fxManager && fxManager.spawn) {
         fxManager.spawn(
@@ -386,6 +449,8 @@ async function handlePlayerWinRound() {
     flashScreen = 1;
     await hitStop(140);
     flashScreen = 0;
+
+    sfxOnce("hit", 0.9);
 
     if (window.CurrentEnemy && window.hpKnight) {
         CurrentEnemy.hp -= dmg;
@@ -411,6 +476,7 @@ async function handlePlayerWinRound() {
     }
 
     samurai.setState("run");
+    sfxOnce("step", 0.7);
     await samurai.moveTo(120, 18);
     samurai.setState("idle");
 
@@ -418,6 +484,8 @@ async function handlePlayerWinRound() {
 }
 
 async function handleEnemyWinRound() {
+
+    const sfxOnce = makeSFXOnce();
 
     DiceSmoke.stop();
     xbar.disable();
@@ -440,6 +508,8 @@ async function handleEnemyWinRound() {
         if (window.damageFX) {
             damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, "EVADE!", true));
         }
+        sfxOnce("dodge", 0.9);
+
         await samurai.blinkTo(samurai.x - 40, samurai.y);
         samurai.setState("idle");
 
@@ -462,9 +532,10 @@ async function handleEnemyWinRound() {
         }
 
         if (hasMateriaNote()) {
-            // Player is the victim of thorns
             Banter.materiaNote("player", "thorns", 1);
         }
+
+        sfxOnce("hit", 0.8);
     }
 
     // --- ENEMY COUNTER (self-damage) ---
@@ -477,17 +548,20 @@ async function handleEnemyWinRound() {
         }
 
         if (hasMateriaNote()) {
-            // Counter hurts the enemy itself here (they overcommit)
             Banter.materiaNote("enemy", "counter", 1);
         }
+
+        sfxOnce("hit", 0.9);
     }
 
     knight.setState("run");
+    sfxOnce("step", 0.7);
     await knight.moveTo(samurai.x + 70, 18);
 
     await wait(60);
 
     knight.setState("attack");
+    sfxOnce("swing", 0.9);
 
     if (window.fxManager && fxManager.spawn) {
         fxManager.spawn(
@@ -504,6 +578,8 @@ async function handleEnemyWinRound() {
     await hitStop(140);
     flashScreen = 0;
 
+    sfxOnce("hit", 0.9);
+
     if (window.hpSamurai) {
         hpSamurai.setHP(hpSamurai.hp - dmg);
     }
@@ -512,7 +588,6 @@ async function handleEnemyWinRound() {
         damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, dmg));
     }
 
-    // getting hit gives stamina back
     if (window.PlayerStamina && PlayerStamina.onHit) {
         PlayerStamina.onHit();
     }
@@ -528,6 +603,7 @@ async function handleEnemyWinRound() {
     }
 
     knight.setState("run");
+    sfxOnce("step", 0.7);
     await knight.moveTo(420, 18);
     knight.setState("idle");
 
@@ -535,6 +611,8 @@ async function handleEnemyWinRound() {
 }
 
 async function handleDrawRound() {
+
+    const sfxOnce = makeSFXOnce();
 
     DiceSmoke.stop();
     xbar.disable();
@@ -548,6 +626,7 @@ async function handleDrawRound() {
 
     samurai.setState("run");
     knight.setState("run");
+    sfxOnce("step", 0.7); // one shared step
 
     samurai.flip = true;
     knight.flip  = false;
@@ -583,6 +662,8 @@ async function handleDrawRound() {
 
 async function handlePassRound() {
 
+    const sfxOnce = makeSFXOnce();
+
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
@@ -600,6 +681,8 @@ async function handlePassRound() {
         }
         Banter.say("knight", "pass", window.CurrentEnemy?.name);
     }
+
+    sfxOnce("dodge", 0.8);
 
     const originalFlip = samurai.flip;
 
@@ -669,14 +752,16 @@ async function handlePassRound() {
 // =======================================================
 async function revealDice(outcome) {
 
-    // Dice visible during reveal
+    const sfxOnce = makeSFXOnce();
+
     window.hideDice = false;
 
     if (!window.dice || !dice.player || !dice.enemy) {
         return;
     }
 
-    // Let smoke sit a bit
+    sfxOnce("ui", 0.8);
+
     await wait(220);
 
     if (window.DiceSmoke && DiceSmoke.burst) {
@@ -704,27 +789,25 @@ async function revealDice(outcome) {
 
 // =======================================================
 // PLAYER ATTACK — uses lastDiceOutcome + revealDice
-// with fallback outcome calculation
 // =======================================================
 window.addEventListener("PLAYER_ATTACK", async () => {
+
+    const sfxOnce = makeSFXOnce();
 
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "attack");
     }
 
-    // === spend stamina for attack ===
     if (window.PlayerStamina && PlayerStamina.spendForAttack) {
         if (!PlayerStamina.spendForAttack()) {
-            // Not enough stamina → enemy gets the turn instead
+            sfxOnce("ui", 0.7);
             window.dispatchEvent(new Event("ENEMY_ATTACK"));
             return;
         }
     }
 
-    // Already mid-sequence? bail.
     if (window._combatBusy) return;
 
-    // If no outcome stored yet, compute from dice faces
     if (!window.lastDiceOutcome) {
         if (typeof window.playerFace === "number" &&
             typeof window.enemyFace  === "number") {
@@ -824,10 +907,9 @@ window.addEventListener("DICE_FINISHED", async () => {
             return;
         }
 
-        // Exhaustion: if player has 0 stamina, skip menu and let enemy attack
         if (window.PlayerStamina && PlayerStamina.current <= 0) {
             window.lastDiceOutcome = null;
-            window.hideDice = false;  // enemy can still use dice state if needed
+            window.hideDice = false;
             window.dispatchEvent(new Event("ENEMY_ATTACK"));
             return;
         }

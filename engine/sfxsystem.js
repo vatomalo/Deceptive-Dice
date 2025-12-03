@@ -1,16 +1,13 @@
 // =======================================================
-// sfxsystem.js — Modular Randomized SFX Engine
-// swing1–9, melee1–9, dodge1–9, etc.
+// sfxsystem.js — Randomized SFX with per-category cooldown
+// Ensures the SAME category can't spam (e.g. hit/hit/hit)
 // =======================================================
 console.log("SFX System Loaded");
 
 // -------------------------------------------------------
 // Base folder (relative to index.html)
-// Example path structure:
-//   /SFX/swing/swing1.wav
-//   /SFX/swing/swing2.wav
+// Files like: ./SFX/hit1.wav, ./SFX/hit2.wav, etc.
 // -------------------------------------------------------
-
 const SFX_PATH = "./SFX";
 
 // -------------------------------------------------------
@@ -24,15 +21,23 @@ const SFX_CATEGORIES = {
     block: 9,
     death: 9,
     step: 9,
-    ui: 9 // (optional future UI sounds)
+    ui: 9
 };
 
 // -------------------------------------------------------
-// Sound pool (preload optional)
+// Sound pool + state
 // -------------------------------------------------------
-const SFXPool = {};  // category → array of Audio()
+const SFXPool = {};  // category → Audio[]
+const SFXState = {
+    lastPlayTime: {}, // category → timestamp (ms)
+    lastIndex: {}     // category → last used index
+};
 
-// Preload all SFX on load (optional but recommended)
+// Minimum delay between two sounds of the same category (ms)
+const SFX_CATEGORY_COOLDOWN_MS = 320;
+
+// -------------------------------------------------------
+// Preload all SFX
 // -------------------------------------------------------
 function preloadAllSFX() {
     for (const category in SFX_CATEGORIES) {
@@ -40,42 +45,92 @@ function preloadAllSFX() {
         SFXPool[category] = [];
 
         for (let i = 1; i <= max; i++) {
-            const audio = new Audio(`${SFX_PATH}/${category}/${category}${i}.wav`);
+            const path = `${SFX_PATH}/${category}${i}.wav`;
+            const audio = new Audio(path);
             audio.preload = "auto";
             SFXPool[category].push(audio);
         }
+        console.log(`[SFX] Preloaded category: ${category} (${max} variations)`);
     }
 
-    console.log("SFX assets preloaded");
+    console.log("[SFX] All assets preloaded");
 }
 
 // -------------------------------------------------------
-// Play a random sound from category
-// Example: SFX.play("swing");
+// Helper: pick random index, avoid same sample twice in a row
+// -------------------------------------------------------
+function pickRandomIndex(category) {
+    const sounds = SFXPool[category];
+    if (!sounds || sounds.length === 0) return -1;
+
+    const len = sounds.length;
+    if (len === 1) return 0;
+
+    const last = SFXState.lastIndex[category];
+    let idx = Math.floor(Math.random() * len);
+
+    if (typeof last === "number" && len > 1 && idx === last) {
+        idx = (idx + 1) % len;
+    }
+
+    SFXState.lastIndex[category] = idx;
+    return idx;
+}
+
+// -------------------------------------------------------
+// Public API: SFX.play("hit", 0.8)
 // -------------------------------------------------------
 const SFX = {
     play(category, volume = 1.0) {
-        if (!SFXPool[category]) {
-            console.warn(`SFX category not found: ${category}`);
+        const sounds = SFXPool[category];
+        if (!sounds) {
+            console.warn(`[SFX] Category not found: ${category}`);
             return;
         }
 
-        const sounds = SFXPool[category];
-        const pick = sounds[Math.floor(Math.random() * sounds.length)];
+        const now = (window.performance && performance.now)
+            ? performance.now()
+            : Date.now();
 
-        if (!pick) return;
+        const last = SFXState.lastPlayTime[category] || 0;
 
-        const audio = pick.cloneNode(); // avoid blocking reuse
+        // HARD GUARD: don't let same category fire too often
+        if (now - last < SFX_CATEGORY_COOLDOWN_MS) {
+            // Uncomment if you want to see skips in console:
+            // console.log(`[SFX] Skipped ${category} (cooldown)`);
+            return;
+        }
+
+        const idx = pickRandomIndex(category);
+        if (idx < 0) return;
+
+        const audio = sounds[idx];
+        if (!audio) return;
+
+        SFXState.lastPlayTime[category] = now;
+
+        audio.currentTime = 0;
         audio.volume = volume;
-        audio.play().catch(err => { /* ignore autoplay errors */ });
+
+        // Debug: log which file we tried to play
+        // (will spam a bit, but useful while debugging)
+        // console.log(`[SFX] Playing ${category}${idx + 1}`);
+
+        audio.play().catch(err => {
+            console.warn("[SFX] play() error:", err);
+        });
     }
 };
 
 // -------------------------------------------------------
-// Initialize on page load
+// Initialize immediately (no waiting for window.load)
 // -------------------------------------------------------
-window.addEventListener("load", () => {
-    preloadAllSFX();
-});
-
+preloadAllSFX();
 window.SFX = SFX;
+
+// Optional: quick manual test helper
+window.testSFX = function () {
+    if (window.SFX) {
+        SFX.play("hit", 0.8);
+    }
+};
