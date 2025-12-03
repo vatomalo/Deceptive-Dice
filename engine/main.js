@@ -2,15 +2,16 @@
 // main.js — FINAL FULLY SYNCED WITH renderloop.js
 // + Materia menu toggle + clean event-based combat hook
 // + MTR tab click opens Materia menu
+// + Sword Stance cycle (Q/E)
 // =======================================================
 console.log("main.js loaded");
 
 // ===================================================
 // GLOBAL DICE HELPERS + STATE
 // ===================================================
-window.rollDie    = () => Math.floor(Math.random() * 6) + 1;
+window.rollDie = () => Math.floor(Math.random() * 6) + 1;
 window.playerFace = null;
-window.enemyFace  = null;
+window.enemyFace = null;
 
 // Are dice currently rolling?
 let diceRolling = false;
@@ -32,6 +33,10 @@ window.game = {
     // -----------------------------------------------
     // ROLL: start a new round of dice
     // -----------------------------------------------
+
+    // -----------------------------------------------
+    // ROLL: start a new round of dice
+    // -----------------------------------------------
     doRoll() {
 
         // avoid double rolls during animation
@@ -48,18 +53,23 @@ window.game = {
 
         // Clear previous FX + dice visuals
         if (dice && dice.player) dice.player.clear();
-        if (dice && dice.enemy)  dice.enemy.clear();
+        if (dice && dice.enemy) dice.enemy.clear();
 
         // Roll logical faces
         playerFace = rollDie();
-        enemyFace  = rollDie();
+        enemyFace = rollDie();
 
         // Start dice animations (visual only)
         dice.player.roll(playerFace);
         dice.enemy.roll(enemyFace);
 
-        // DICE_FINISHED is handled by combat.js
+        // 🔑 When the ENEMY die finishes animating, fire DICE_FINISHED
+        dice.enemy.onFinish = () => {
+            window.dispatchEvent(new Event("DICE_FINISHED"));
+        };
     },
+
+
 
     // -----------------------------------------------
     // ATTACK: delegate to combat.js event system
@@ -98,14 +108,14 @@ window.game = {
 // =======================================================
 document.addEventListener("DOMContentLoaded", () => {
 
-    const canvas       = document.getElementById("game-canvas");
-    const ctx          = canvas.getContext("2d");
-    const startBtn     = document.getElementById("start-btn");
-    const titleScreen  = document.getElementById("title-screen");
-    const gameui       = document.getElementById("game-ui");
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("start-btn");
+    const titleScreen = document.getElementById("title-screen");
+    const gameui = document.getElementById("game-ui");
 
     window.canvas = canvas;
-    window.ctx    = ctx;
+    window.ctx = ctx;
 
     canvas.style.display = "none";
     gameui.style.display = "none";
@@ -125,11 +135,54 @@ document.addEventListener("DOMContentLoaded", () => {
     fullscreenImg.onload = () => fsReady = true;
 
     // ---------------------------------------------------
-    // Materia menu keybind (M)
-// ---------------------------------------------------
+    // Sword Stance handling (Q/E)
+    //  neutral → fang → wind → stone
+    // ---------------------------------------------------
+    const stanceOrder = ["neutral", "fang", "wind", "stone"];
+    let stanceIndex = 0;
+
+    function cycleStance(dir) {
+        if (typeof window.setStance !== "function") return;
+
+        stanceIndex = (stanceIndex + dir + stanceOrder.length) % stanceOrder.length;
+        const next = stanceOrder[stanceIndex];
+        setStance(next);
+
+        // Optional: small center banter ping so player feels it
+        if (window.Banter && Banter.push) {
+            const label =
+                next === "neutral" ? "STANCE: SHEATHED" :
+                    next === "fang" ? "STANCE: FANG (STR↑ DEF↓)" :
+                        next === "wind" ? "STANCE: WIND (AGI↑ STR↓)" :
+                            next === "stone" ? "STANCE: STONE (DEF↑ AGI↓)" :
+                                `STANCE: ${next.toUpperCase()}`;
+
+            Banter.push(label, "center", 1400);
+        }
+    }
+
+    // ---------------------------------------------------
+    // Materia menu keybind (M) + Stance keys (Q/E)
+    // ---------------------------------------------------
     document.addEventListener("keydown", e => {
+
+        // Materia menu toggle
         if (e.key === "m" || e.key === "M") {
             window.materiaMenuOpen = !window.materiaMenuOpen;
+            return;
+        }
+
+        // Stance cycle: Q = previous, E = next
+        if (e.key === "q" || e.key === "Q") {
+            e.preventDefault();
+            cycleStance(-1);
+            return;
+        }
+
+        if (e.key === "e" || e.key === "E") {
+            e.preventDefault();
+            cycleStance(+1);
+            return;
         }
     });
 
@@ -138,9 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ---------------------------------------------------
     canvas.addEventListener("click", e => {
 
-        const r  = canvas.getBoundingClientRect();
+        const r = canvas.getBoundingClientRect();
         const mx = (e.clientX - r.left) * (canvas.width / r.width);
-        const my = (e.clientY - r.top)  * (canvas.height / r.height);
+        const my = (e.clientY - r.top) * (canvas.height / r.height);
 
         // If materia menu open → handle clicks there first
         if (window.materiaMenuOpen) {
@@ -188,8 +241,8 @@ document.addEventListener("DOMContentLoaded", () => {
     startBtn.onclick = () => {
 
         titleScreen.style.display = "none";
-        canvas.style.display      = "block";
-        gameui.style.display      = "block";
+        canvas.style.display = "block";
+        gameui.style.display = "block";
 
         Announcer.play("fight");
         MusicSystem.playRandom();
@@ -230,7 +283,7 @@ function handleMateriaClick(mx, my, canvas) {
 
     const menuX = 80;
     const menuY = 60;
-    const menuW = canvas.width  - 160;
+    const menuW = canvas.width - 160;
     const menuH = canvas.height - 120;
 
     // Click outside → close menu
@@ -244,7 +297,7 @@ function handleMateriaClick(mx, my, canvas) {
     if (!window.MateriaInventory || !window.Materia) return true;
 
     const startY = 150;
-    const lineH  = 28;
+    const lineH = 28;
 
     const idx = Math.floor((my - startY) / lineH);
     if (idx >= 0 && idx < MateriaInventory.length) {
@@ -265,7 +318,7 @@ function handleMateriaClick(mx, my, canvas) {
 async function startGame() {
 
     // ---------------- BG + FX ----------------
-    window.bg    = new ParallaxBG("default_stage");
+    window.bg = new ParallaxBG("default_stage");
     window.decor = new Decor("default_stage");
     window.fxManager = new FXManager();
 
@@ -274,25 +327,25 @@ async function startGame() {
     // CHARACTERS
     // ===================================================
     const samurai = new Character(120, 375, 2.5);
-    samurai.addAnimation("idle",   new SpriteSheetAnimator("Artwork/Samurai/IDLE.png",    10, 55));
-    samurai.addAnimation("run",    new SpriteSheetAnimator("Artwork/Samurai/RUN.png",     16, 28));
-    samurai.addAnimation("attack", new SpriteSheetAnimator("Artwork/Samurai/ATTACK1.png",  7, 38));
-    samurai.addAnimation("block",  new SpriteSheetAnimator("Artwork/Samurai/HURT.png",     4, 70));
+    samurai.addAnimation("idle", new SpriteSheetAnimator("Artwork/Samurai/IDLE.png", 10, 55));
+    samurai.addAnimation("run", new SpriteSheetAnimator("Artwork/Samurai/RUN.png", 16, 28));
+    samurai.addAnimation("attack", new SpriteSheetAnimator("Artwork/Samurai/ATTACK1.png", 7, 38));
+    samurai.addAnimation("block", new SpriteSheetAnimator("Artwork/Samurai/HURT.png", 4, 70));
     // no dedicated death sheet yet; using FX + fade
     samurai.setState("idle");
 
     const knight = new Character(420, 375, 2.5);
     knight.flip = true;
-    knight.addAnimation("idle",   new SpriteSheetAnimator("Artwork/Knight/IDLE.png",    7, 55));
-    knight.addAnimation("run",    new SpriteSheetAnimator("Artwork/Knight/RUN.png",     8, 28));
+    knight.addAnimation("idle", new SpriteSheetAnimator("Artwork/Knight/IDLE.png", 7, 55));
+    knight.addAnimation("run", new SpriteSheetAnimator("Artwork/Knight/RUN.png", 8, 28));
     knight.addAnimation("attack", new SpriteSheetAnimator("Artwork/Knight/ATTACK1.png", 6, 42));
-    knight.addAnimation("block",  new SpriteSheetAnimator("Artwork/Knight/DEFEND.png",  6, 70));
-    knight.addAnimation("hurt",   new SpriteSheetAnimator("Artwork/Knight/HURT.png",    4, 70));
-    knight.addAnimation("death",  new SpriteSheetAnimator("Artwork/Knight/DEATH.png",  12, 70));
+    knight.addAnimation("block", new SpriteSheetAnimator("Artwork/Knight/DEFEND.png", 6, 70));
+    knight.addAnimation("hurt", new SpriteSheetAnimator("Artwork/Knight/HURT.png", 4, 70));
+    knight.addAnimation("death", new SpriteSheetAnimator("Artwork/Knight/DEATH.png", 12, 70));
     knight.setState("idle");
 
     window.samurai = samurai;
-    window.knight  = knight;
+    window.knight = knight;
 
     window.playerResetStats(); // initial player stats
 
@@ -346,7 +399,7 @@ async function startGame() {
 
     console.log("HP init", {
         samurai: { hp: hpSamurai.hp, max: hpSamurai.maxHP },
-        knight : { hp: hpKnight.hp,  max: hpKnight.maxHP }
+        knight: { hp: hpKnight.hp, max: hpKnight.maxHP }
     });
 
     // ===================================================
@@ -354,7 +407,7 @@ async function startGame() {
     // ===================================================
     window.dice = {
         player: new DiceSystem(ctx),
-        enemy:  new DiceSystem(ctx)
+        enemy: new DiceSystem(ctx)
     };
 
     // ===================================================

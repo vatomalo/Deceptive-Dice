@@ -52,7 +52,21 @@ function playerLevelUp() {
         default:       PlayerStats.DEF++; break;
     }
 
-    // Send a clean event to gameloop/UI
+    // ---- HP scaling + full heal on level up ----
+    if (window.hpSamurai) {
+        // Example: +3 max HP per level
+        hpSamurai.maxHP += 3;
+        hpSamurai.setHP(hpSamurai.maxHP);
+    }
+
+    // ---- Stamina scaling + full refill ----
+    if (window.PlayerStamina) {
+        // Example: +8 stamina per level
+        PlayerStamina.max += 8;
+        PlayerStamina.current = PlayerStamina.max;
+    }
+
+    // Event to UI / game systems
     window.dispatchEvent(new CustomEvent("PLAYER_LEVEL_UP", {
         detail: {
             level: PlayerLevel.level,
@@ -62,6 +76,7 @@ function playerLevelUp() {
         }
     }));
 }
+
 
 window.playerLevelUp = playerLevelUp;
 

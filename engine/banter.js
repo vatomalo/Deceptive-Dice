@@ -4,7 +4,7 @@
 // =======================================================
 console.log("banter.js loaded");
 
-(function() {
+(function () {
 
     class BanterMessage {
         // Slightly longer default duration
@@ -91,8 +91,8 @@ console.log("banter.js loaded");
 
             const side =
                 actor === "samurai" ? "left" :
-                actor === "knight"  ? "right" :
-                "center";
+                    actor === "knight" ? "right" :
+                        "center";
 
             this.push(pick, side);
         },
@@ -111,12 +111,12 @@ console.log("banter.js loaded");
             ctx.textBaseline = "middle";
 
             const baseFontSize = 18;
-            const minFontSize  = 10;
+            const minFontSize = 10;
 
-            const panelH   = 48;
-            const marginY  = 72;
-            const padX     = 12;
-            const padY     = 10;
+            const panelH = 48;
+            const marginY = 72;
+            const padX = 12;
+            const padY = 10;
 
             // Max width so left/right panels don't crash into each other
             const maxPanelW = 220;
@@ -129,7 +129,7 @@ console.log("banter.js loaded");
 
                 // --- AUTO FONT RESIZE PER MESSAGE -----------------
                 let fontSize = baseFontSize;
-                let panelW   = maxPanelW;
+                let panelW = maxPanelW;
 
                 // Shrink font until text fits inside fixed panel width
                 while (true) {
@@ -149,9 +149,9 @@ console.log("banter.js loaded");
                 panelW = Math.max(180, Math.min(maxPanelW, textWidth + padX * 2));
 
                 let x;
-                if (msg.side === "left")       x = 24;
+                if (msg.side === "left") x = 24;
                 else if (msg.side === "right") x = canvas.width - panelW - 24;
-                else                           x = (canvas.width - panelW) / 2;
+                else x = (canvas.width - panelW) / 2;
 
                 const y = marginY;
 
@@ -172,6 +172,62 @@ console.log("banter.js loaded");
 
             ctx.restore();
         }
+    };
+
+    // =======================================================
+    // MATERIA NOTIFIER — icons + stacks + arrows → target
+    // =======================================================
+
+    // Icons per materia type (you can change anytime)
+    const MATERIA_ICONS = {
+        poison: "☠",   // toxic
+        regen: "✚",   // healing
+        barrier: "⛨",   // shield
+        thorns: "♨",   // reflective damage
+        counter: "⇄",   // counterattack
+        speed: "➤",   // haste
+        crit: "✦"    // critical hit
+    };
+
+    // Labels per materia type
+    const MATERIA_LABELS = {
+        poison: "Poisoned",
+        regen: "Regen",
+        barrier: "Barrier",
+        thorns: "Thorns",
+        counter: "Counter",
+        speed: "Haste",
+        crit: "Critical"
+    };
+
+    /**
+     * target: "player" or "enemy"
+     * type  : "poison" | "regen" | "barrier" | "thorns" | "counter" | "speed" | "crit" | ...
+     * stacks: integer >= 1
+     */
+    Banter.materiaNote = function (target, type, stacks = 1) {
+        const key = (type || "").toLowerCase();
+
+        const icon = MATERIA_ICONS[key] || "◇";
+        const label = MATERIA_LABELS[key] || (type || "Materia");
+
+        let core = `${icon} ${label}`;
+        if (stacks > 1) {
+            core += ` ×${stacks}`;
+        }
+
+        let side = "center";
+        let arrowText = core;
+
+        if (target === "player") {
+            side = "left";
+            arrowText = "← " + core;
+        } else if (target === "enemy") {
+            side = "right";
+            arrowText = core + " →";
+        }
+
+        this.push(arrowText, side, 2000);
     };
 
     window.Banter = Banter;

@@ -1,13 +1,14 @@
 // =======================================================
 // combat.js — Dice revealed ONLY on ATTACK + Stamina
 // + Banter hooks + Katana & Blood FX for deaths
+// + Spirit Hearts (continues)
 // =======================================================
 
 console.log("combat.js loaded");
 
 // Small impact freeze
 const hitStop = (ms) => new Promise(res => setTimeout(res, ms));
-const wait = (ms) => new Promise(res => setTimeout(res, ms));
+const wait    = (ms) => new Promise(res => setTimeout(res, ms));
 
 // Outcome of last roll: "player", "enemy", "draw" or null
 window.lastDiceOutcome = null;
@@ -25,6 +26,20 @@ if (!window.MateriaInventory) {
     window.MateriaInventory = [];
 }
 
+// Spirit Hearts (continues)
+if (typeof window.PlayerHearts === "undefined") {
+    window.PlayerHearts = 1;   // starting continues
+}
+if (typeof window.MaxHearts === "undefined") {
+    window.MaxHearts = 3;
+}
+
+// Convenience: safe access to materia UI helper
+function hasMateriaNote() {
+    return !!(window.Banter && typeof Banter.materiaNote === "function");
+}
+
+
 // =======================================================
 // KNIGHT RESPAWN SEQUENCE
 // =======================================================
@@ -41,7 +56,7 @@ async function knightRespawnSequence() {
     knight.x = canvas.width + 80;
 
     for (let i = 0; i < 8; i++) {
-        if (fxManager && fxManager.spawnDust) fxManager.spawnDust(knight);
+        if (window.fxManager && fxManager.spawnDust) fxManager.spawnDust(knight);
     }
 
     // Run back to home position
@@ -80,7 +95,7 @@ async function samuraiRespawnSequence() {
     flashScreen = 0;
 
     // Angel spark on death position (guarded)
-    if (fxManager && fxManager.spawnAngelSpark) {
+    if (window.fxManager && fxManager.spawnAngelSpark) {
         fxManager.spawnAngelSpark(samurai.x, samurai.y - 60);
     }
 
@@ -109,7 +124,7 @@ window.addEventListener("SAMURAI_RESPAWN_EVENT", async () => {
 
 
 // =======================================================
-// SAMURAI DEATH
+// SAMURAI DEATH (with Spirit Hearts)
 // =======================================================
 window.samuraiDeath = async function () {
 
@@ -124,14 +139,18 @@ window.samuraiDeath = async function () {
     }
 
     // Katana spin upwards from body
-    spawnKatanaFX(samurai.x + 6, samurai.y - 90);
+    if (typeof spawnKatanaFX === "function") {
+        spawnKatanaFX(samurai.x + 6, samurai.y - 90);
+    }
 
     // Small brace pose
     samurai.setState("block");
     await wait(260);
 
     // Blood burst
-    spawnBloodFX(samurai.x, samurai.y - 50, 20);
+    if (typeof spawnBloodFX === "function") {
+        spawnBloodFX(samurai.x, samurai.y - 50, 20);
+    }
 
     // Fade out samurai
     let fade = 1;
@@ -150,16 +169,21 @@ window.samuraiDeath = async function () {
 
     await knight.moveTo(420, 18);
 
-    // Trigger respawn sequence
+    // ---- CONTINUE LOGIC (Spirit Hearts) ----
+    const hasExtraLife = (typeof window.PlayerHearts === "number" && PlayerHearts > 0);
+    if (hasExtraLife) {
+        PlayerHearts = Math.max(0, PlayerHearts - 1);
+        console.log("Continue used. Remaining hearts:", PlayerHearts);
+    } else {
+        console.log("No hearts left: full run reset.");
+    }
+
+    // Trigger respawn sequence (position / stamina visuals)
     dispatchEvent(new Event("SAMURAI_RESPAWN_EVENT"));
 
-    // Full reset
-    window.playerResetStats();
-
-    if (window.PlayerStamina && PlayerStamina.reset) {
-        PlayerStamina.reset();
-    } else if (window.PlayerStamina) {
-        PlayerStamina.current = PlayerStamina.max;
+    // Hard reset only if no hearts left
+    if (!hasExtraLife && typeof window.playerResetStats === "function") {
+        window.playerResetStats();
     }
 
     // Restore samurai visuals + HP
@@ -167,12 +191,22 @@ window.samuraiDeath = async function () {
     samurai.setState("idle");
 
     if (window.hpSamurai) {
+        // Full heal on respawn (soft or hard)
         hpSamurai.setHP(hpSamurai.maxHP);
+    }
+
+    // Ensure stamina full on any respawn
+    if (window.PlayerStamina) {
+        if (PlayerStamina.reset) {
+            PlayerStamina.reset();
+        } else {
+            PlayerStamina.current = PlayerStamina.max;
+        }
     }
 
     await samurai.blinkTo(SAMURAI_HOME_X, SAMURAI_HOME_Y);
 
-    console.log("Player respawned");
+    console.log("Player respawned (hearts:", PlayerHearts, ")");
 };
 
 
@@ -192,7 +226,9 @@ window.knightDeath = async function () {
     }
 
     // Blood on knight
-    spawnBloodFX(knight.x, knight.y - 60, 24);
+    if (typeof spawnBloodFX === "function") {
+        spawnBloodFX(knight.x, knight.y - 60, 24);
+    }
 
     knight.setState("death");
     await wait(300);
@@ -216,8 +252,15 @@ window.knightDeath = async function () {
     dispatchEvent(new Event("KNIGHT_RESPAWN_EVENT"));
 
     // Enemy progression
-    TotalKills++;
-    enemyGainXP(6);
+    if (typeof TotalKills === "number") {
+        TotalKills++;
+    } else {
+        window.TotalKills = 1;
+    }
+
+    if (typeof enemyGainXP === "function") {
+        enemyGainXP(6);
+    }
 
     // Simple materia drop system
     try {
@@ -239,7 +282,9 @@ window.knightDeath = async function () {
     }
 
     // Spawn new enemy and reset stamina
-    spawnEnemy(TotalKills);
+    if (typeof spawnEnemy === "function") {
+        spawnEnemy(TotalKills);
+    }
 
     if (window.EnemyStamina && EnemyStamina.reset) {
         EnemyStamina.reset();
@@ -251,11 +296,13 @@ window.knightDeath = async function () {
     knight.alpha = 1;
     knight.setState("idle");
 
-    CurrentEnemy.hp = CurrentEnemy.maxHP;
-    hpKnight.maxHP = CurrentEnemy.maxHP;
-    hpKnight.setHP(CurrentEnemy.hp);
+    if (window.CurrentEnemy && window.hpKnight) {
+        CurrentEnemy.hp = CurrentEnemy.maxHP;
+        hpKnight.maxHP  = CurrentEnemy.maxHP;
+        hpKnight.setHP(CurrentEnemy.hp);
+    }
 
-    console.log("Respawned:", CurrentEnemy);
+    console.log("Respawned:", window.CurrentEnemy);
 };
 
 
@@ -266,8 +313,8 @@ async function handlePlayerWinRound() {
 
     DiceSmoke.stop();
     xbar.disable();
-    if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy) dice.enemy.clear();
+    if (window.dice && dice.player) dice.player.clear();
+    if (window.dice && dice.enemy)  dice.enemy.clear();
 
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
@@ -275,23 +322,46 @@ async function handlePlayerWinRound() {
 
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "hit");
-        Banter.say("knight", "hurt", CurrentEnemy?.name);
+        Banter.say("knight", "hurt", window.CurrentEnemy?.name);
     }
 
     let base = Math.max(1, playerFace - enemyFace) * 10;
-    let dmg = computePlayerDamage(base);
 
-    if (tryCrit()) {
+    // Use materia system if present, else simple fallback
+    let dmg = (window.computePlayerDamage)
+        ? window.computePlayerDamage(base)
+        : Math.max(1, Math.floor(base));
+
+    // --- CRIT (single roll + UI) ---
+    const didCrit = typeof tryCrit === "function" ? tryCrit() : false;
+    if (didCrit) {
         dmg *= 2;
-        damageFX.push(new DamageNumber(knight.x, knight.y - 140, "CRIT!", true));
+        if (window.damageFX) {
+            damageFX.push(new DamageNumber(knight.x, knight.y - 140, "CRIT!", true));
+        }
+
+        if (hasMateriaNote()) {
+            Banter.materiaNote("enemy", "crit", 1);
+        }
     }
 
-    if (tryMultihit("player")) {
+    if (typeof tryMultihit === "function" && tryMultihit("player")) {
         dmg = Math.floor(dmg * 1.8);
-        damageFX.push(new DamageNumber(knight.x, knight.y - 150, "x2!", true));
+        if (window.damageFX) {
+            damageFX.push(new DamageNumber(knight.x, knight.y - 150, "x2!", true));
+        }
     }
 
-    if (applyPoison()) CurrentEnemy.isPoisoned = true;
+    // --- POISON APPLICATION (player → enemy) ---
+    if (typeof applyPoison === "function" && applyPoison()) {
+        if (window.CurrentEnemy) {
+            CurrentEnemy.isPoisoned = true;
+        }
+
+        if (hasMateriaNote()) {
+            Banter.materiaNote("enemy", "poison", 1);
+        }
+    }
 
     // APPROACH
     samurai.setState("run");
@@ -302,7 +372,7 @@ async function handlePlayerWinRound() {
     // ATTACK
     samurai.setState("attack");
 
-    if (fxManager && fxManager.spawn) {
+    if (window.fxManager && fxManager.spawn) {
         fxManager.spawn(
             FX_SLASH,
             knight.x - 40,
@@ -317,18 +387,26 @@ async function handlePlayerWinRound() {
     await hitStop(140);
     flashScreen = 0;
 
-    CurrentEnemy.hp -= dmg;
-    hpKnight.setHP(CurrentEnemy.hp);
+    if (window.CurrentEnemy && window.hpKnight) {
+        CurrentEnemy.hp -= dmg;
+        hpKnight.setHP(CurrentEnemy.hp);
+    }
 
-    damageFX.push(new DamageNumber(knight.x, knight.y - 110, dmg));
+    if (window.damageFX) {
+        damageFX.push(new DamageNumber(knight.x, knight.y - 110, dmg));
+    }
 
     knight.setState("hurt");
     await wait(150);
     knight.setState("idle");
 
-    if (CurrentEnemy.hp <= 0) {
-        giveXP(12 + enemyFace * 2);
-        enemyGainXP(6);
+    if (window.CurrentEnemy && CurrentEnemy.hp <= 0) {
+        if (typeof giveXP === "function") {
+            giveXP(12 + enemyFace * 2);
+        }
+        if (typeof enemyGainXP === "function") {
+            enemyGainXP(6);
+        }
         await knightDeath();
     }
 
@@ -343,23 +421,25 @@ async function handleEnemyWinRound() {
 
     DiceSmoke.stop();
     xbar.disable();
-    if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy) dice.enemy.clear();
+    if (window.dice && dice.player) dice.player.clear();
+    if (window.dice && dice.enemy)  dice.enemy.clear();
 
     if (window.EnemyStamina && EnemyStamina.regen) {
         EnemyStamina.regen();
     }
 
     if (window.Banter && Banter.say) {
-        Banter.say("knight", "hit", CurrentEnemy?.name);
+        Banter.say("knight", "hit", window.CurrentEnemy?.name);
         Banter.say("samurai", "hurt");
     }
 
     let base = Math.max(1, enemyFace - playerFace) * 10;
 
     // EVADE
-    if (tryEvade("player")) {
-        damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, "EVADE!", true));
+    if (typeof tryEvade === "function" && tryEvade("player")) {
+        if (window.damageFX) {
+            damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, "EVADE!", true));
+        }
         await samurai.blinkTo(samurai.x - 40, samurai.y);
         samurai.setState("idle");
 
@@ -367,19 +447,39 @@ async function handleEnemyWinRound() {
         return;
     }
 
-    let dmg = computeEnemyDamage(base);
+    let dmg = (window.computeEnemyDamage)
+        ? window.computeEnemyDamage(base)
+        : Math.max(1, Math.floor(base));
 
-    if (CurrentEnemy.materia.thorns) {
+    const enemyMateria = (window.CurrentEnemy && CurrentEnemy.materia) ? CurrentEnemy.materia : {};
+
+    // --- ENEMY THORNS (reflect to player) ---
+    if (enemyMateria.thorns && window.hpSamurai) {
         let t = Math.floor(dmg * 0.2);
         hpSamurai.setHP(hpSamurai.hp - t);
-        damageFX.push(new DamageNumber(samurai.x, samurai.y - 130, `${t} THORNS`, true));
+        if (window.damageFX) {
+            damageFX.push(new DamageNumber(samurai.x, samurai.y - 130, `${t} THORNS`, true));
+        }
+
+        if (hasMateriaNote()) {
+            // Player is the victim of thorns
+            Banter.materiaNote("player", "thorns", 1);
+        }
     }
 
-    if (CurrentEnemy.materia.counter) {
-        let c = Math.floor(CurrentEnemy.STR * 1.6);
+    // --- ENEMY COUNTER (self-damage) ---
+    if (enemyMateria.counter && window.CurrentEnemy && window.hpKnight) {
+        let c = Math.floor((CurrentEnemy.STR || 1) * 1.6);
         CurrentEnemy.hp -= c;
         hpKnight.setHP(CurrentEnemy.hp);
-        damageFX.push(new DamageNumber(knight.x, knight.y - 160, "COUNTER!", true));
+        if (window.damageFX) {
+            damageFX.push(new DamageNumber(knight.x, knight.y - 160, "COUNTER!", true));
+        }
+
+        if (hasMateriaNote()) {
+            // Counter hurts the enemy itself here (they overcommit)
+            Banter.materiaNote("enemy", "counter", 1);
+        }
     }
 
     knight.setState("run");
@@ -389,7 +489,7 @@ async function handleEnemyWinRound() {
 
     knight.setState("attack");
 
-    if (fxManager && fxManager.spawn) {
+    if (window.fxManager && fxManager.spawn) {
         fxManager.spawn(
             FX_SLASH,
             samurai.x - 40,
@@ -404,8 +504,13 @@ async function handleEnemyWinRound() {
     await hitStop(140);
     flashScreen = 0;
 
-    hpSamurai.setHP(hpSamurai.hp - dmg);
-    damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, dmg));
+    if (window.hpSamurai) {
+        hpSamurai.setHP(hpSamurai.hp - dmg);
+    }
+
+    if (window.damageFX) {
+        damageFX.push(new DamageNumber(samurai.x, samurai.y - 110, dmg));
+    }
 
     // getting hit gives stamina back
     if (window.PlayerStamina && PlayerStamina.onHit) {
@@ -416,7 +521,7 @@ async function handleEnemyWinRound() {
     await wait(140);
     samurai.setState("idle");
 
-    if (hpSamurai.hp <= 0) {
+    if (window.hpSamurai && hpSamurai.hp <= 0) {
         await samuraiDeath();
         xbar.showRoll();
         return;
@@ -433,25 +538,25 @@ async function handleDrawRound() {
 
     DiceSmoke.stop();
     xbar.disable();
-    if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy) dice.enemy.clear();
+    if (window.dice && dice.player) dice.player.clear();
+    if (window.dice && dice.enemy)  dice.enemy.clear();
 
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "roll");
-        Banter.say("knight", "roll", CurrentEnemy?.name);
+        Banter.say("knight", "roll", window.CurrentEnemy?.name);
     }
 
     samurai.setState("run");
     knight.setState("run");
 
     samurai.flip = true;
-    knight.flip = false;
+    knight.flip  = false;
 
     const samuraiBack = samurai.x - 120;
-    const knightBack = knight.x + 120;
+    const knightBack  = knight.x + 120;
 
     for (let i = 0; i < 6; i++) {
-        if (fxManager && fxManager.spawnDust) {
+        if (window.fxManager && fxManager.spawnDust) {
             fxManager.spawnDust(samurai);
             fxManager.spawnDust(knight);
         }
@@ -463,7 +568,7 @@ async function handleDrawRound() {
     ]);
 
     samurai.flip = false;
-    knight.flip = true;
+    knight.flip  = true;
 
     await Promise.all([
         samurai.moveTo(120, 15),
@@ -480,8 +585,8 @@ async function handlePassRound() {
 
     DiceSmoke.stop();
     xbar.disable();
-    if (dice && dice.player) dice.player.clear();
-    if (dice && dice.enemy) dice.enemy.clear();
+    if (window.dice && dice.player) dice.player.clear();
+    if (window.dice && dice.enemy)  dice.enemy.clear();
 
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
@@ -493,7 +598,7 @@ async function handlePassRound() {
         } else {
             Banter.say("samurai", "pass");
         }
-        Banter.say("knight", "pass", CurrentEnemy?.name);
+        Banter.say("knight", "pass", window.CurrentEnemy?.name);
     }
 
     const originalFlip = samurai.flip;
@@ -502,7 +607,10 @@ async function handlePassRound() {
     await wait(80);
     flashScreen = 0;
 
-    shadowClones.push(spawnShadowClone(samurai));
+    if (window.shadowClones) {
+        shadowClones.push(spawnShadowClone(samurai));
+    }
+
     await wait(120);
 
     const r = Math.floor(Math.random() * 4);
@@ -525,14 +633,18 @@ async function handlePassRound() {
     else {
         samurai.flip = true;
         await samurai.blinkTo(knight.x + 60, 375);
-        shadowClones.push(spawnShadowClone(samurai));
+        if (window.shadowClones) {
+            shadowClones.push(spawnShadowClone(samurai));
+        }
         await wait(140);
         samurai.flip = false;
         await samurai.blinkTo(240, 375);
         await wait(160);
     }
 
-    shadowClones.push(spawnShadowClone(samurai));
+    if (window.shadowClones) {
+        shadowClones.push(spawnShadowClone(samurai));
+    }
 
     await wait(100);
     await samurai.blinkTo(SAMURAI_HOME_X, 375);
@@ -540,7 +652,7 @@ async function handlePassRound() {
 
     samurai.flip = originalFlip;
     samurai.setState("idle");
-    shadowClones.length = 0;
+    if (window.shadowClones) shadowClones.length = 0;
 
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
@@ -567,12 +679,12 @@ async function revealDice(outcome) {
     // Let smoke sit a bit
     await wait(220);
 
-    if (DiceSmoke && DiceSmoke.burst) {
+    if (window.DiceSmoke && DiceSmoke.burst) {
         DiceSmoke.burst(dice.enemy);
     }
 
     if (dice.player) dice.player.bounceVel = -8;
-    if (dice.enemy) dice.enemy.bounceVel = -8;
+    if (dice.enemy)  dice.enemy.bounceVel  = -8;
 
     await wait(180);
 
@@ -592,6 +704,7 @@ async function revealDice(outcome) {
 
 // =======================================================
 // PLAYER ATTACK — uses lastDiceOutcome + revealDice
+// with fallback outcome calculation
 // =======================================================
 window.addEventListener("PLAYER_ATTACK", async () => {
 
@@ -608,8 +721,26 @@ window.addEventListener("PLAYER_ATTACK", async () => {
         }
     }
 
-    if (!window.lastDiceOutcome || window._combatBusy) {
-        return;
+    // Already mid-sequence? bail.
+    if (window._combatBusy) return;
+
+    // If no outcome stored yet, compute from dice faces
+    if (!window.lastDiceOutcome) {
+        if (typeof window.playerFace === "number" &&
+            typeof window.enemyFace  === "number") {
+
+            if (playerFace > enemyFace) {
+                window.lastDiceOutcome = "player";
+            } else if (enemyFace > playerFace) {
+                window.lastDiceOutcome = "enemy";
+            } else {
+                window.lastDiceOutcome = "draw";
+            }
+
+        } else {
+            console.warn("PLAYER_ATTACK: no dice outcome and no faces → abort");
+            return;
+        }
     }
 
     window._combatBusy = true;
@@ -637,7 +768,7 @@ window.addEventListener("PLAYER_ATTACK", async () => {
 // =======================================================
 window.addEventListener("ENEMY_ATTACK", async () => {
     if (window.Banter && Banter.say) {
-        Banter.say("knight", "attack", CurrentEnemy?.name);
+        Banter.say("knight", "attack", window.CurrentEnemy?.name);
     }
 
     if (window._combatBusy) return;
@@ -652,7 +783,7 @@ window.addEventListener("ENEMY_ATTACK", async () => {
 window.addEventListener("DRAW_EVENT", async () => {
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "roll");
-        Banter.say("knight", "roll", CurrentEnemy?.name);
+        Banter.say("knight", "roll", window.CurrentEnemy?.name);
     }
     if (window._combatBusy) return;
     window._combatBusy = true;
@@ -708,11 +839,6 @@ window.addEventListener("DICE_FINISHED", async () => {
         } else {
             window.lastDiceOutcome = "draw";
         }
-
-        // ⬇️ KEY CHANGE:
-        // Do NOT hide dice here anymore.
-        // We keep them visible under smoke until ATTACK/PASS.
-        // window.hideDice = true;
 
         if (typeof xbar !== "undefined" && xbar.showCombat) {
             xbar.showCombat();

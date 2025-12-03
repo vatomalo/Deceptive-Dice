@@ -12,6 +12,8 @@ let currentMood = "calm";
 window.setMood = function (newMood) {
     currentMood = newMood;
     console.log("Mood set to:", currentMood);
+    if (currentMood== "calm")
+    {window.ParallaxBG.layer.speed = 1}
 };
 
 // ----------------------------------------------------
