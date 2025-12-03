@@ -14,6 +14,10 @@ Cinematic “reveal → clash → attack” flow
 
 Smoke FX that hides dice during roll and bursts on resolution
 
+
+
+
+
 🗡️ 2D Action Animations
 
 Uses a flexible Character system with:
@@ -55,6 +59,9 @@ Regen over time
 Crit chance
 All implemented cleanly in materiasystem.js with hooks into combat and damage engines .
 
+
+
+
 🌀 Stamina System (Player + Enemy)
 
 Light fighting-game stamina with:
@@ -64,6 +71,9 @@ Regeneration per frame
 Low-stamina flicker
 
 Costs tied to PASS / ATTACK / dodge logic
+
+
+
 
 🎨 Full Visual Pipeline
 
@@ -77,6 +87,11 @@ Weather Director for mood-based transitions (clear → sakura → heavy rain)
 
 Day/Night palette system with smooth transitions (dawn/day/dusk/night) and weather integration
 
+
+
+
+
+
 🔥 Combat FX System
 
 Smoke, sparks, slashes, dust trails, teleport rings, angel-spark FX
@@ -84,6 +99,9 @@ Smoke, sparks, slashes, dust trails, teleport rings, angel-spark FX
 All particle-driven, frame-stable, fully layered above combatants
 
 Managed by a global FXManager for spawning & lifetime control
+
+
+
 
 📊 UI & HUD
 
@@ -93,11 +111,18 @@ Full HP bar widget for player/enemy with dynamic max HP changes
 
 X-Bar combat UI (ROLL / ATTACK / PASS) with input-lock safety
 
+
+
+
 🎵 Adaptive BGM + Announcer
 
 Automatic BGM shuffling by mood (calm/tense/story) with crossfades
 
 Announcer voice (“FIGHT!”, “KO!”, “GAME OVER”) on key events
+
+
+
+
 
 ⚡ Gameloop (Final Integration)
 
@@ -122,7 +147,7 @@ Version 1.1 Goals (Current Release)
 
 ✔ Enemy behavioral overhaul
 
-✔ Materia expansion + correct integration into combat
+✔ Materia expansion 
 
 ✔ Enemy stamina logic fixed
 
@@ -151,5 +176,3 @@ every roll feels like a duel,
 every attack is cinematic,
 
 and the world feels alive through weather, light, and momentum.
-
-The game is designed to scale into a full adventure mode with shops, materia crafting, enemy factions, and a world map system.
