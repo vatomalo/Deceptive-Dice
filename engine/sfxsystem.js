@@ -21,8 +21,8 @@ const SFX_FILES = {
     death: [],              // no files yet → empty list is fine
     step:  ["step1.mp3"],
     ui:    ["ui1.mp3"],
-    grunt: ["/male/battle_grunt1.mp3"],
-    voice_attack: ["/male/battle_grunt1.mp3"]
+    grunt: ["/male/Battle_Grunt1.mp3"],
+    voice_attack: ["/male/Battle_Grunt1.mp3"]
 
     // You can add: melee: ["melee1.wav"], etc.
 };
