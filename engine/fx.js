@@ -91,8 +91,12 @@ class FXStatic {
 // =======================================================
 
 // Katana image (prop) – stored in Artwork/FX/katana.png
+// Katana image (prop) – shared with UI nameplate & death FX
 const KATANA_IMG = new Image();
-KATANA_IMG.src   = "Artwork/FX/Katana.png";
+KATANA_IMG.src = "./Artwork/FX/Katana.png";
+KATANA_IMG.onerror = (e) => {
+    console.warn("[FX] Katana image failed to load:", e);
+};
 
 class KatanaSpinFX {
     constructor(x, y) {
@@ -112,7 +116,8 @@ class KatanaSpinFX {
     }
 
     draw(ctx) {
-        if (!KATANA_IMG.complete) return;
+        // Guard against broken/zero-size image
+        if (!KATANA_IMG.complete || !KATANA_IMG.naturalWidth) return;
 
         ctx.save();
         ctx.translate(this.x, this.y);
@@ -120,8 +125,8 @@ class KatanaSpinFX {
 
         const w = KATANA_IMG.width;
         const h = KATANA_IMG.height;
-        ctx.drawImage(KATANA_IMG, -w / 2, -h / 2);
 
+        ctx.drawImage(KATANA_IMG, -w / 2, -h / 2);
         ctx.restore();
     }
 
@@ -129,6 +134,13 @@ class KatanaSpinFX {
         return this.life <= 0;
     }
 }
+
+// Small helpers
+function spawnKatanaFX(x, y) {
+    if (!window.fxManager || !fxManager.list) return;
+    fxManager.list.push(new KatanaSpinFX(x, y));
+}
+
 
 class BloodParticleFX {
     constructor(x, y) {
