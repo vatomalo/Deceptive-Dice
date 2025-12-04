@@ -92,7 +92,7 @@ class FXStatic {
 
 // Katana image (prop) – stored in Artwork/FX/katana.png
 const KATANA_IMG = new Image();
-KATANA_IMG.src   = "Artwork/FX/katana.png";
+KATANA_IMG.src   = "Artwork/FX/Katana.png";
 
 class KatanaSpinFX {
     constructor(x, y) {
