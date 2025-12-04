@@ -1,6 +1,6 @@
 // =======================================================
 // stancesystem.js — Stances: Balance / Fang / Wind / Aegis
-// Hooks: Stamina + Stats + UI Katana
+// Hooks: Stamina + Stats
 // =======================================================
 console.log("stancesystem.js loaded");
 
@@ -183,61 +183,8 @@ console.log("stancesystem.js loaded");
         }
     }
 
-    // ===============================================
-    //  UI: KATANA UNDER PLAYER NAMEPLATE
-    // ===============================================
-
-    // TODO: point this to the same sprite you use in your death FX
-    const stanceKatanaImg = new Image();
-    stanceKatanaImg.src = "./Artwork/FX/Katana.png";
-
     const NAMEPLATE_W = 220;
     const NAMEPLATE_H = 28;
-
-    function drawKatana(ctx, cx, y, color, label) {
-        ctx.save();
-
-        if (stanceKatanaImg.complete && stanceKatanaImg.width > 0) {
-            const w = stanceKatanaImg.width;
-            const h = stanceKatanaImg.height;
-            const scale = 0.6;
-
-            const dw = w * scale;
-            const dh = h * scale;
-            const dx = cx - dw / 2;
-            const dy = y - dh / 2;
-
-            // draw katana sprite
-            ctx.drawImage(stanceKatanaImg, dx, dy, dw, dh);
-
-            // subtle color overlay
-            ctx.globalAlpha = 0.4;
-            ctx.fillStyle = color;
-            ctx.fillRect(dx, dy, dw, dh);
-            ctx.globalAlpha = 1.0;
-
-        } else {
-            // fallback: simple vector line if image not ready
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 4;
-            ctx.lineCap = "round";
-            const len = 140;
-
-            ctx.beginPath();
-            ctx.moveTo(cx - len / 2, y);
-            ctx.lineTo(cx + len / 2, y);
-            ctx.stroke();
-        }
-
-        // label (FANG/WIND/AEGIS/BAL)
-        ctx.font = "10px pixel";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
-        ctx.fillText(label, cx, y + 6);
-
-        ctx.restore();
-    }
 
     function hookNamePlates() {
         if (!window.drawNamePlate) return;
@@ -260,7 +207,6 @@ console.log("stancesystem.js loaded");
             const color = Stance.getColor();
             const label = Stance.getLabel();
 
-            drawKatana(ctx, centerX, swordY, color, label);
         };
     }
 

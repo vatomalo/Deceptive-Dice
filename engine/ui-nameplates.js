@@ -15,19 +15,19 @@ let heartIconReady  = false;
 (function initIcons() {
     katanaIcon = new Image();
     katanaIcon.onload = () => { katanaIconReady = true; };
-    // same family as death FX katana
+    // same sprite used by KatanaSpinFX
     katanaIcon.src = "./Artwork/FX/Katana.png";
 
     heartIcon = new Image();
     heartIcon.onload = () => { heartIconReady = true; };
-    heartIcon.src = "./Artwork/UI/Heart.png"; // provide this; otherwise fallback squares are used
+    heartIcon.src = "./Artwork/UI/Heart.png";
 })();
 
-// Helper: figure out stance key + color
+// -------------------------------------------------------
+// STANCE COLOR + LABEL
+// -------------------------------------------------------
 function getStanceColor() {
-
-    // Prefer the stance system if it exists
-    let key = "fang";
+    let key = "balance";
 
     if (window.Stance && typeof Stance.current === "string") {
         key = Stance.current;
@@ -35,7 +35,7 @@ function getStanceColor() {
         key = window.PlayerStance;
     }
 
-    // normalize possible keys
+    key = String(key || "").toLowerCase();
     if (key === "gale") key = "wind";
 
     switch (key) {
@@ -51,6 +51,14 @@ function getStanceColor() {
         default:
             return "rgba(220,60,60,0.95)";
     }
+}
+
+function getStanceLabel() {
+    if (window.Stance && typeof Stance.getLabel === "function") {
+        const lbl = Stance.getLabel();
+        if (lbl) return String(lbl).toUpperCase();
+    }
+    return "BAL";
 }
 
 // -------------------------------------------------------
@@ -91,44 +99,82 @@ window.drawNamePlate = function(ctx, x, y, title, levelText) {
 
     // ---------------------------------------------------
     // PLAYER-ONLY: stance katana under the name
-    // Colored strip is drawn ON TOP of the katana
-    // so it reads visually as the blade.
+    // Blade = neutral grey bar     (stance indicator)
+    // Hilt  = cropped katana hilt  (colored)
     // ---------------------------------------------------
     if (typeof canvas !== "undefined" && x < canvas.width * 0.5) {
 
         const stanceColor = getStanceColor();
+        const stanceLabel = getStanceLabel();
 
-        // katana placement inside plate
-        const swordW = 80;
-        const swordH = 6;
-        const swordX = x + 8;
-        const swordY = y + height - swordH - 3;
+        // Blade placement
+        const bladeW = 140;
+        const bladeH = 4;
+        const bladeX = x + 26;                 // room for hilt
+        const bladeY = y + height - bladeH - 4;
 
-        // 1) draw katana sprite first
-        if (katanaIconReady) {
+        // 1) Blade: neutral grey bar
+        ctx.fillStyle = "rgba(230,230,230,0.96)";
+        ctx.fillRect(bladeX, bladeY, bladeW, bladeH);
+
+        // 2) Hilt: cropped right-sword hilt from Katana.png,
+        //    rotated 90° clockwise so blade lies horizontally.
+        const hiltDrawW = 6;   // on-screen size
+        const hiltDrawH = 38;
+        const hiltCx    = bladeX - hiltDrawW * 0.45; // center of hilt
+        const hiltCy    = bladeY + bladeH / 2;
+
+        if (katanaIconReady && katanaIcon.width > 0 && katanaIcon.height > 0) {
+
+            // Exact crop for hilt (guard + handle) in 64x64 Katana.png
+            const HILT_SRC_X = 33;
+            const HILT_SRC_Y = 34;
+            const HILT_SRC_W = 4;
+            const HILT_SRC_H = 15;
+
+            ctx.save();
+            // move to hilt center
+            ctx.translate(hiltCx, hiltCy);
+            // rotate 90° clockwise
+            ctx.rotate(Math.PI / 2);
+
+            // draw cropped hilt centered at (0,0)
             ctx.drawImage(
                 katanaIcon,
-                swordX,
-                swordY - 1,      // tiny offset so it hugs the bottom
-                swordW,
-                swordH + 2
+                HILT_SRC_X, HILT_SRC_Y,
+                HILT_SRC_W, HILT_SRC_H,
+                -hiltDrawW / 2, -hiltDrawH / 2,
+                hiltDrawW, hiltDrawH
             );
+
+            // tint with stance color, keep translucency
+            ctx.globalCompositeOperation = "source-atop";
+            ctx.fillStyle = stanceColor;
+            ctx.globalAlpha = 0.85;
+            ctx.fillRect(-hiltDrawW / 2, -hiltDrawH / 2, hiltDrawW, hiltDrawH);
+
+            ctx.restore();
         } else {
-            // fallback: simple outline sword
-            ctx.strokeStyle = "black";
-            ctx.lineWidth   = 1;
-            ctx.strokeRect(swordX, swordY, swordW, swordH);
+            // fallback: simple colored block if icon not loaded
+            ctx.fillStyle = stanceColor;
+            ctx.fillRect(
+                bladeX - hiltDrawW * 0.7,
+                bladeY - (hiltDrawH - bladeH) / 2,
+                hiltDrawW,
+                hiltDrawH
+            );
         }
 
-        // 2) draw the colored "blade" strip ON TOP of the katana
-        // tuned so it sits exactly in the middle of the sprite
-        const bladeH = 3;
-        const bladeY = swordY + (swordH - bladeH) / 2;
+        // 3) Stance label centered under the blade
+        ctx.font         = "10px pixelUI";
+        ctx.fillStyle    = "rgba(240,240,240,0.97)";
+        ctx.textAlign    = "center";
+        ctx.textBaseline = "top";
 
-        ctx.fillStyle   = stanceColor;
-        ctx.globalAlpha = 0.95;
-        ctx.fillRect(swordX + 2, bladeY, swordW - 4, bladeH);
-        ctx.globalAlpha = 1.0;
+        const textX = bladeX + bladeW / 2;
+        const textY = bladeY + bladeH + 2;
+
+        ctx.fillText(stanceLabel, textX, textY);
     }
 
     ctx.restore();
