@@ -2,9 +2,7 @@
 A fast-paced cinematic dice-duel game inspired by Seiken Densetsu 3, Samurai Shodown, and FFVII’s materia system, built entirely in JavaScript/Canvas. Every round is a mind-game: roll, clash, attack, evade, or pass using ninja-style repositioning. Weather, lighting, and dynamic FX make each duel feel alive.
 
 
-Game link:
-
- [Link text](https://vatomalo.github.io/Deceptive-Dice/)
+[Game link:](https://vatomalo.github.io/Deceptive-Dice/)
 
 
 Core Features
