@@ -102,6 +102,13 @@ window.game = {
     }
 };
 
+window.addEventListener("load", async () => {
+    if (!loadGame()) {
+        await systemMessage("Your fate begins now...");
+        await systemMessage("Press X to continue.");
+    }
+});
+
 
 // =======================================================
 // FULL INITIALIZATION
@@ -117,8 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
     window.canvas = canvas;
     window.ctx = ctx;
 
-    canvas.style.display = "none";
-    gameui.style.display = "none";
+    canvas.style.display = "block";
+    gameui.style.display = "block";
+    AttractMode.start();
 
     // Banter JSON
     if (window.Banter && Banter.load) {
@@ -160,6 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
             Banter.push(label, "center", 1400);
         }
     }
+    // Make stance cycling available to gamepad / other systems
+    window.cycleStance = cycleStance;
+
 
     // ---------------------------------------------------
     // Materia menu keybind (M) + Stance keys (Q/E)
@@ -183,6 +194,32 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             cycleStance(+1);
             return;
+        }
+    });
+    canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // -----------------------------------------
+        // Touch stance change:
+        // Tap in the top-left HUD area (nameplate/sword)
+        // -----------------------------------------
+        const stanceRegionYMax = 110;    // same band as nameplate & katana
+        const stanceRegionXMax = canvas.width * 0.45;
+
+        if (my <= stanceRegionYMax && mx <= stanceRegionXMax) {
+            if (window.cycleStance) {
+                cycleStance(+1);
+                return; // don't click XBar if we used stance tap
+            }
+        }
+
+        // -----------------------------------------
+        // XBar click handling
+        // -----------------------------------------
+        if (window.xbar && xbar.handleClick) {
+            xbar.handleClick(mx, my);
         }
     });
 
@@ -239,14 +276,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // START BUTTON — Master initializer
     // ===================================================
     startBtn.onclick = () => {
-
+        AttractMode.stop();
         titleScreen.style.display = "none";
         canvas.style.display = "block";
         gameui.style.display = "block";
 
         Announcer.play("fight");
         MusicSystem.playRandom();
-
         startGame();
     };
 
@@ -347,7 +383,12 @@ async function startGame() {
     window.samurai = samurai;
     window.knight = knight;
 
-    window.playerResetStats(); // initial player stats
+    window.playerResetStats(); // existing line
+
+    // NEW: AttractMode knows about the actors
+    if (window.AttractMode && AttractMode.init) {
+        AttractMode.init(samurai, knight);
+    }
 
     window.SAMURAI_HOME_X = 120;
     window.SAMURAI_HOME_Y = 375;

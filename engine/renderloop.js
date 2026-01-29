@@ -128,6 +128,7 @@ console.log("renderloop.js loaded");
             dice.player.draw();
             dice.enemy.draw();
         }
+        if (window.QTE) QTE.update();
 
         // ===================================================
         // COMBAT FX
@@ -210,6 +211,7 @@ console.log("renderloop.js loaded");
             Banter.update(dt);
             Banter.draw(ctx, canvas);
         }
+        if (window.QTE) QTE.draw(ctx, canvas);
 
         // ===================================================
         // FULLSCREEN ICON

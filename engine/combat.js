@@ -7,6 +7,51 @@
 
 console.log("combat.js loaded");
 
+window._passCaughtAttack = false;
+
+// =======================================================
+// PASS RULES
+// =======================================================
+function enemyCatchesPass() {
+    // Enemy can "catch" PASS if their roll is low enough.
+    // NOTE: This is intentionally forgiving to avoid PASS being suicide.
+    if (typeof enemyFace !== "number") return true; // fail-safe
+    return enemyFace < 2; // catches on 1–2 only (~33%)
+}
+
+function passQTEEligible() {
+    // QTE eligibility gate:
+    // player dice above enemy dice by 3 or more.
+    if (typeof playerFace !== "number") return false;
+    if (typeof enemyFace !== "number") return false;
+    return (playerFace - enemyFace) >= 3;
+}
+
+// ---- QTE spawn control (prevents spam, but still happens) ----
+window._qteCooldownUntil = window._qteCooldownUntil || 0;
+
+function shouldSpawnPassQTE() {
+    if (!passQTEEligible()) return false;
+
+    const now = performance.now();
+    if (now < window._qteCooldownUntil) return false;
+
+    // Make it frequent enough to actually appear in real play,
+    // but still tied to dominating the roll.
+    // gap 3 => 18%
+    // gap 4 => 26%
+    // gap 5 => 34%
+    // gap 6 => 42%
+    const gap = playerFace - enemyFace; // >= 3
+    const chance = Math.min(0.42, 0.18 + (gap - 4) * 0.08);
+
+    if (Math.random() > chance) return false;
+
+    // cooldown prevents streaks
+    window._qteCooldownUntil = now + 2200; // 2.2s
+    return true;
+}
+
 // Small impact freeze
 const hitStop = (ms) => new Promise(res => setTimeout(res, ms));
 const wait = (ms) => new Promise(res => setTimeout(res, ms));
@@ -19,7 +64,7 @@ window.AudioProfiles = window.AudioProfiles || {};
 
 if (!AudioProfiles.samuraiVoice) {
     AudioProfiles.samuraiVoice = {
-        pitch: 1.05,     // base pitch for samurai voice (ha! tsu! etc)
+        pitch: 1.05,
         reverb: true,
         distortion: 0.0
     };
@@ -27,7 +72,7 @@ if (!AudioProfiles.samuraiVoice) {
 
 if (!AudioProfiles.knightVoice) {
     AudioProfiles.knightVoice = {
-        pitch: 0.95,     // knight slightly heavier / lower
+        pitch: 0.95,
         reverb: false,
         distortion: 0.0
     };
@@ -35,22 +80,19 @@ if (!AudioProfiles.knightVoice) {
 
 if (!AudioProfiles.samuraiSFX) {
     AudioProfiles.samuraiSFX = {
-        swingPitch: 0.90, // lower = heavier slash
-        dodgePitch: 1.05  // slightly sharper ninja vanish
+        swingPitch: 0.90,
+        dodgePitch: 1.05
     };
 }
 
 if (!AudioProfiles.knightSFX) {
     AudioProfiles.knightSFX = {
-        swingPitch: 0.95  // a bit lower than default
+        swingPitch: 0.95
     };
 }
 
 // -------------------------------------------------------
 // SFX helpers (route to entity channels + apply profiles)
-// NOTE: We pass an extra "options" argument. If your
-// SFX.playSamurai/playKnight/playUI ignore it, no problem.
-// Later, when you implement pitch/reverb there, it "just works".
 // -------------------------------------------------------
 function sfxSamurai(category, volume = 1.0, kind = "sfx") {
     if (!window.SFX || typeof SFX.playSamurai !== "function") return;
@@ -75,11 +117,8 @@ function sfxSamurai(category, volume = 1.0, kind = "sfx") {
 
     console.log("[SFX SAMURAI]", category, "vol", volume, "opts", options);
 
-    if (options) {
-        SFX.playSamurai(category, volume, options);
-    } else {
-        SFX.playSamurai(category, volume);
-    }
+    if (options) SFX.playSamurai(category, volume, options);
+    else SFX.playSamurai(category, volume);
 }
 
 function sfxKnight(category, volume = 1.0, kind = "sfx") {
@@ -103,21 +142,17 @@ function sfxKnight(category, volume = 1.0, kind = "sfx") {
 
     console.log("[SFX KNIGHT]", category, "vol", volume, "opts", options);
 
-    if (options) {
-        SFX.playKnight(category, volume, options);
-    } else {
-        SFX.playKnight(category, volume);
-    }
+    if (options) SFX.playKnight(category, volume, options);
+    else SFX.playKnight(category, volume);
 }
 
 function sfxUI(category, volume = 1.0) {
     if (!window.SFX || typeof SFX.playUI !== "function") return;
     console.log("[SFX UI]", category, "vol", volume);
-    SFX.playUI(category, volume);  // UI is usually neutral pitch
+    SFX.playUI(category, volume);
 }
 
-// Convenience: voice helpers (anime JRPG shouts)
-// They call categories like "voice_attack", "voice_hurt", etc.
+// Convenience: voice helpers
 function samuraiVoice(id = "attack", volume = 1.0) {
     sfxSamurai(`voice_${id}`, volume, "voice");
 }
@@ -142,12 +177,12 @@ if (!window.MateriaInventory) {
     window.MateriaInventory = [];
 }
 
-// Spirit Hearts (continues)
+// Spirit Hearts (continues) — keep your 5 lives
 if (typeof window.PlayerHearts === "undefined") {
-    window.PlayerHearts = 1;   // starting continues
+    window.PlayerHearts = 5;
 }
 if (typeof window.MaxHearts === "undefined") {
-    window.MaxHearts = 3;
+    window.MaxHearts = 5;
 }
 
 // Convenience: safe access to materia UI helper
@@ -155,32 +190,26 @@ function hasMateriaNote() {
     return !!(window.Banter && typeof Banter.materiaNote === "function");
 }
 
-
 // =======================================================
 // KNIGHT RESPAWN SEQUENCE
 // =======================================================
 async function knightRespawnSequence() {
-
     DiceSmoke.stop();
     xbar.disable();
 
-    // Knight entrance: step SFX on knight channel
     sfxKnight("step", 0.8);
 
     knight.alpha = 1;
     knight.setState("run");
     knight.flip = true;
 
-    // Start off-screen on the right
     knight.x = canvas.width + 80;
 
     for (let i = 0; i < 8; i++) {
         if (window.fxManager && fxManager.spawnDust) fxManager.spawnDust(knight);
     }
 
-    // Run back to home position
     await knight.moveTo(420, 15);
-
     knight.setState("idle");
 
     if (window.EnemyStamina && EnemyStamina.reset) {
@@ -191,37 +220,30 @@ async function knightRespawnSequence() {
 
     DiceSmoke.start();
 
-    // Optional banter on new knight entry
     if (window.Banter && Banter.say && window.CurrentEnemy) {
         Banter.say("knight", "intro", CurrentEnemy.name);
     }
 }
 
-
 // =======================================================
 // SAMURAI RESPAWN SEQUENCE
 // =======================================================
 async function samuraiRespawnSequence() {
-
     const originalFlip = samurai.flip;
 
     DiceSmoke.stop();
     xbar.disable();
 
-    // Ninja return: dodge SFX on samurai channel (with dodgePitch)
     sfxSamurai("dodge", 0.9);
 
-    // Small flash
     flashScreen = 1;
     await wait(120);
     flashScreen = 0;
 
-    // Angel spark on death position (guarded)
     if (window.fxManager && fxManager.spawnAngelSpark) {
         fxManager.spawnAngelSpark(samurai.x, samurai.y - 60);
     }
 
-    // Blink back home (ninja vanish style)
     await samurai.blinkTo(SAMURAI_HOME_X, SAMURAI_HOME_Y);
 
     samurai.flip = originalFlip;
@@ -244,12 +266,10 @@ window.addEventListener("SAMURAI_RESPAWN_EVENT", async () => {
     await samuraiRespawnSequence();
 });
 
-
 // =======================================================
 // SAMURAI DEATH (with Spirit Hearts)
 // =======================================================
 window.samuraiDeath = async function () {
-
     console.log("Player death triggered");
 
     xbar.disable();
@@ -260,44 +280,34 @@ window.samuraiDeath = async function () {
         Banter.say("samurai", "death");
     }
 
-    // Optional death voice
     samuraiVoice("death", 0.9);
 
-    // Katana spin upwards from body (visual)
     if (typeof spawnKatanaFX === "function") {
         spawnKatanaFX(samurai.x + 6, samurai.y - 90);
     }
 
-    // Brace
     samurai.setState("block");
     await wait(260);
 
-    // Blood burst (visual)
     if (typeof spawnBloodFX === "function") {
         spawnBloodFX(samurai.x, samurai.y - 50, 20);
     }
 
-    // Fade out samurai
     let fade = 1;
     await new Promise(resolve => {
         const loop = () => {
             fade -= 0.05;
             samurai.alpha = Math.max(0, fade);
-            if (fade > 0) {
-                requestAnimationFrame(loop);
-            } else {
-                resolve();
-            }
+            if (fade > 0) requestAnimationFrame(loop);
+            else resolve();
         };
         loop();
     });
 
-    // Samurai death SFX (heavier slash / body drop)
     sfxSamurai("death", 0.9);
 
     await knight.moveTo(420, 18);
 
-    // ---- CONTINUE LOGIC (Spirit Hearts) ----
     const hasExtraLife = (typeof window.PlayerHearts === "number" && PlayerHearts > 0);
     if (hasExtraLife) {
         PlayerHearts = Math.max(0, PlayerHearts - 1);
@@ -306,15 +316,12 @@ window.samuraiDeath = async function () {
         console.log("No hearts left: full run reset.");
     }
 
-    // Trigger respawn sequence (position / stamina visuals)
     dispatchEvent(new Event("SAMURAI_RESPAWN_EVENT"));
 
-    // Hard reset only if no hearts left
     if (!hasExtraLife && typeof window.playerResetStats === "function") {
         window.playerResetStats();
     }
 
-    // Restore samurai visuals + HP
     samurai.alpha = 1;
     samurai.setState("idle");
 
@@ -323,11 +330,8 @@ window.samuraiDeath = async function () {
     }
 
     if (window.PlayerStamina) {
-        if (PlayerStamina.reset) {
-            PlayerStamina.reset();
-        } else {
-            PlayerStamina.current = PlayerStamina.max;
-        }
+        if (PlayerStamina.reset) PlayerStamina.reset();
+        else PlayerStamina.current = PlayerStamina.max;
     }
 
     await samurai.blinkTo(SAMURAI_HOME_X, SAMURAI_HOME_Y);
@@ -335,12 +339,10 @@ window.samuraiDeath = async function () {
     console.log("Player respawned (hearts:", PlayerHearts, ")");
 };
 
-
 // =======================================================
 // KNIGHT DEATH
 // =======================================================
 window.knightDeath = async function () {
-
     console.log("Knight death triggered");
 
     xbar.disable();
@@ -351,40 +353,31 @@ window.knightDeath = async function () {
         Banter.say("knight", "death", CurrentEnemy.name);
     }
 
-    // Optional death voice
     knightVoice("death", 0.9);
 
-    // Blood on knight
     if (typeof spawnBloodFX === "function") {
         spawnBloodFX(knight.x, knight.y - 60, 24);
     }
 
     knight.setState("death");
 
-    // Knight death SFX
     sfxKnight("death", 0.9);
 
     await wait(300);
 
-    // Fade out knight
     let fade = 1;
     await new Promise(resolve => {
         const loop = () => {
             fade -= 0.05;
             knight.alpha = Math.max(0, fade);
-            if (fade > 0) {
-                requestAnimationFrame(loop);
-            } else {
-                resolve();
-            }
+            if (fade > 0) requestAnimationFrame(loop);
+            else resolve();
         };
         loop();
     });
 
-    // Respawn event (run-in sequence)
     dispatchEvent(new Event("KNIGHT_RESPAWN_EVENT"));
 
-    // Enemy progression
     if (typeof TotalKills === "number") {
         TotalKills++;
     } else {
@@ -395,9 +388,9 @@ window.knightDeath = async function () {
         enemyGainXP(6);
     }
 
-    // Simple materia drop system
+    // Materia drop
     try {
-        if (Math.random() < 0.25) {  // 25% drop rate
+        if (Math.random() < 0.25) {
             const pool = ["crit", "regen", "speed", "barrier", "counter", "thorns", "poison"];
             const pick = pool[Math.floor(Math.random() * pool.length)];
 
@@ -409,13 +402,11 @@ window.knightDeath = async function () {
             if (window.Banter && Banter.say) {
                 Banter.say("samurai", "found");
             }
-            // could add a UI sound: sfxUI("ui", 0.9);
         }
     } catch (e) {
         console.warn("Materia drop failed:", e);
     }
 
-    // Spawn new enemy and reset stamina
     if (typeof spawnEnemy === "function") {
         spawnEnemy(TotalKills);
     }
@@ -426,7 +417,6 @@ window.knightDeath = async function () {
         EnemyStamina.current = EnemyStamina.max;
     }
 
-    // Restore knight visuals + HP
     knight.alpha = 1;
     knight.setState("idle");
 
@@ -439,12 +429,10 @@ window.knightDeath = async function () {
     console.log("Respawned:", window.CurrentEnemy);
 };
 
-
 // =======================================================
 // CORE ROUND SEQUENCES (no dice reveal here)
 // =======================================================
 async function handlePlayerWinRound() {
-
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
@@ -459,7 +447,6 @@ async function handlePlayerWinRound() {
         Banter.say("knight", "hurt", window.CurrentEnemy?.name);
     }
 
-    // Optional attack voice (anime "Ha!")
     samuraiVoice("attack", 0.9);
 
     let base = Math.max(1, playerFace - enemyFace) * 10;
@@ -468,17 +455,13 @@ async function handlePlayerWinRound() {
         ? window.computePlayerDamage(base)
         : Math.max(1, Math.floor(base));
 
-    // --- CRIT (visual / banter) ---
     const didCrit = typeof tryCrit === "function" ? tryCrit() : false;
     if (didCrit) {
         dmg *= 2;
         if (window.damageFX) {
             damageFX.push(new DamageNumber(knight.x, knight.y - 140, "CRIT!", true));
         }
-
-        if (hasMateriaNote()) {
-            Banter.materiaNote("enemy", "crit", 1);
-        }
+        if (hasMateriaNote()) Banter.materiaNote("enemy", "crit", 1);
     }
 
     if (typeof tryMultihit === "function" && tryMultihit("player")) {
@@ -489,34 +472,20 @@ async function handlePlayerWinRound() {
     }
 
     if (typeof applyPoison === "function" && applyPoison()) {
-        if (window.CurrentEnemy) {
-            CurrentEnemy.isPoisoned = true;
-        }
-
-        if (hasMateriaNote()) {
-            Banter.materiaNote("enemy", "poison", 1);
-        }
+        if (window.CurrentEnemy) CurrentEnemy.isPoisoned = true;
+        if (hasMateriaNote()) Banter.materiaNote("enemy", "poison", 1);
     }
 
-    // APPROACH
     samurai.setState("run");
     await samurai.moveTo(knight.x - 70, 18);
 
     await wait(60);
 
-    // ATTACK (swing SFX uses samuraiSFX.swingPitch)
     samurai.setState("attack");
     sfxSamurai("swing", 0.9);
 
     if (window.fxManager && fxManager.spawn) {
-        fxManager.spawn(
-            FX_SLASH,
-            knight.x - 40,
-            knight.y - 100,
-            1.25,
-            false,
-            65
-        );
+        fxManager.spawn(FX_SLASH, knight.x - 40, knight.y - 100, 1.25, false, 65);
     }
 
     flashScreen = 1;
@@ -537,12 +506,8 @@ async function handlePlayerWinRound() {
     knight.setState("idle");
 
     if (window.CurrentEnemy && CurrentEnemy.hp <= 0) {
-        if (typeof giveXP === "function") {
-            giveXP(12 + enemyFace * 2);
-        }
-        if (typeof enemyGainXP === "function") {
-            enemyGainXP(6);
-        }
+        if (typeof giveXP === "function") giveXP(12 + enemyFace * 2);
+        if (typeof enemyGainXP === "function") enemyGainXP(6);
         await knightDeath();
     }
 
@@ -554,7 +519,6 @@ async function handlePlayerWinRound() {
 }
 
 async function handleEnemyWinRound() {
-
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
@@ -569,7 +533,6 @@ async function handleEnemyWinRound() {
         Banter.say("samurai", "hurt");
     }
 
-    // Enemy attack voice
     knightVoice("attack", 0.9);
 
     let base = Math.max(1, enemyFace - playerFace) * 10;
@@ -593,6 +556,11 @@ async function handleEnemyWinRound() {
         ? window.computeEnemyDamage(base)
         : Math.max(1, Math.floor(base));
 
+    // PASS mitigation: if the enemy "catches" a PASS, damage is reduced.
+    if (window._passCaughtAttack) {
+        dmg = Math.max(1, Math.floor(dmg * 0.70));
+    }
+
     const enemyMateria = (window.CurrentEnemy && CurrentEnemy.materia) ? CurrentEnemy.materia : {};
 
     if (enemyMateria.thorns && window.hpSamurai) {
@@ -601,10 +569,7 @@ async function handleEnemyWinRound() {
         if (window.damageFX) {
             damageFX.push(new DamageNumber(samurai.x, samurai.y - 130, `${t} THORNS`, true));
         }
-
-        if (hasMateriaNote()) {
-            Banter.materiaNote("player", "thorns", 1);
-        }
+        if (hasMateriaNote()) Banter.materiaNote("player", "thorns", 1);
     }
 
     if (enemyMateria.counter && window.CurrentEnemy && window.hpKnight) {
@@ -614,10 +579,7 @@ async function handleEnemyWinRound() {
         if (window.damageFX) {
             damageFX.push(new DamageNumber(knight.x, knight.y - 160, "COUNTER!", true));
         }
-
-        if (hasMateriaNote()) {
-            Banter.materiaNote("enemy", "counter", 1);
-        }
+        if (hasMateriaNote()) Banter.materiaNote("enemy", "counter", 1);
     }
 
     knight.setState("run");
@@ -626,19 +588,10 @@ async function handleEnemyWinRound() {
     await wait(60);
 
     knight.setState("attack");
-
-    // Knight swing uses knightSFX.swingPitch
     sfxKnight("swing", 0.9);
 
     if (window.fxManager && fxManager.spawn) {
-        fxManager.spawn(
-            FX_SLASH,
-            samurai.x - 40,
-            samurai.y - 100,
-            1.25,
-            true,
-            65
-        );
+        fxManager.spawn(FX_SLASH, samurai.x - 40, samurai.y - 100, 1.25, true, 65);
     }
 
     flashScreen = 1;
@@ -675,7 +628,6 @@ async function handleEnemyWinRound() {
 }
 
 async function handleDrawRound() {
-
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
@@ -689,7 +641,6 @@ async function handleDrawRound() {
     samurai.setState("run");
     knight.setState("run");
 
-    // Draw: subtle UI cue
     sfxUI("ui", 0.8);
 
     samurai.flip = true;
@@ -724,27 +675,26 @@ async function handleDrawRound() {
     xbar.showRoll();
 }
 
+// =======================================================
+// PASS ROUND
+// =======================================================
 async function handlePassRound() {
-
     DiceSmoke.stop();
     xbar.disable();
     if (window.dice && dice.player) dice.player.clear();
     if (window.dice && dice.enemy) dice.enemy.clear();
 
+    // PASS regen once (avoid double regen)
     if (window.PlayerStamina && PlayerStamina.regen) {
         PlayerStamina.regen();
     }
 
     if (window.Banter && Banter.say) {
-        if (Math.random() < 0.02) {
-            Banter.say("samurai", "tina_rare");
-        } else {
-            Banter.say("samurai", "pass");
-        }
+        if (Math.random() < 0.02) Banter.say("samurai", "tina_rare");
+        else Banter.say("samurai", "pass");
         Banter.say("knight", "pass", window.CurrentEnemy?.name);
     }
 
-    // PASS: dodge sound (uses samuraiSFX.dodgePitch)
     sfxSamurai("dodge", 0.8);
 
     const originalFlip = samurai.flip;
@@ -765,18 +715,15 @@ async function handlePassRound() {
         samurai.flip = true;
         await samurai.blinkTo(knight.x + 90, 375);
         await wait(180);
-    }
-    else if (r === 1) {
+    } else if (r === 1) {
         samurai.flip = false;
         await samurai.blinkTo(260, 375);
         await wait(200);
-    }
-    else if (r === 2) {
+    } else if (r === 2) {
         samurai.flip = false;
         await samurai.blinkTo(20, 375);
         await wait(160);
-    }
-    else {
+    } else {
         samurai.flip = true;
         await samurai.blinkTo(knight.x + 60, 375);
         if (window.shadowClones) {
@@ -801,28 +748,54 @@ async function handlePassRound() {
     samurai.setState("idle");
     if (window.shadowClones) shadowClones.length = 0;
 
-    if (window.PlayerStamina && PlayerStamina.regen) {
-        PlayerStamina.regen();
+    window.lastDiceOutcome = null;
+
+    console.log("[PASS] faces:", playerFace, enemyFace);
+
+    // ---- QTE only sometimes (gated + cooldown) ----
+    let qteSuccess = false;
+    if (window.QTE && shouldSpawnPassQTE()) {
+        qteSuccess = await QTE.prompt({ durationMs: 420 });
+    }
+
+    if (qteSuccess) {
+        await handlePlayerWinRound();
+
+        // very rare extra chain
+        if (Math.random() < 0.05) {
+            await handlePlayerWinRound();
+        }
+
+        // If enemy died, do NOT allow catch/attack
+        if (window.CurrentEnemy && CurrentEnemy.hp <= 0) {
+            window.lastDiceOutcome = null;
+            xbar.showRoll();
+            return;
+        }
+    }
+
+    // Enemy catch check
+    const caught = enemyCatchesPass();
+    console.log("[PASS] enemy catches:", caught);
+
+    if (caught) {
+        window._passCaughtAttack = true;
+        await handleEnemyWinRound();
+        window._passCaughtAttack = false;
     }
 
     window.lastDiceOutcome = null;
-
     xbar.showRoll();
 }
-
 
 // =======================================================
 // DICE REVEAL — ONLY CALLED WHEN ATTACK IS PRESSED
 // =======================================================
 async function revealDice(outcome) {
-
     window.hideDice = false;
 
-    if (!window.dice || !dice.player || !dice.enemy) {
-        return;
-    }
+    if (!window.dice || !dice.player || !dice.enemy) return;
 
-    // UI dice reveal sound
     sfxUI("ui", 0.8);
 
     await wait(220);
@@ -837,24 +810,18 @@ async function revealDice(outcome) {
     await wait(180);
 
     if (outcome === "player") {
-        if (dice.enemy) {
-            dice.enemy.currentFrame = null;
-        }
+        if (dice.enemy) dice.enemy.currentFrame = null;
     } else if (outcome === "enemy") {
-        if (dice.player) {
-            dice.player.currentFrame = null;
-        }
+        if (dice.player) dice.player.currentFrame = null;
     }
 
     await wait(140);
 }
 
-
 // =======================================================
 // PLAYER ATTACK — uses lastDiceOutcome + revealDice
 // =======================================================
 window.addEventListener("PLAYER_ATTACK", async () => {
-
     if (window.Banter && Banter.say) {
         Banter.say("samurai", "attack");
     }
@@ -870,17 +837,10 @@ window.addEventListener("PLAYER_ATTACK", async () => {
     if (window._combatBusy) return;
 
     if (!window.lastDiceOutcome) {
-        if (typeof window.playerFace === "number" &&
-            typeof window.enemyFace === "number") {
-
-            if (playerFace > enemyFace) {
-                window.lastDiceOutcome = "player";
-            } else if (enemyFace > playerFace) {
-                window.lastDiceOutcome = "enemy";
-            } else {
-                window.lastDiceOutcome = "draw";
-            }
-
+        if (typeof window.playerFace === "number" && typeof window.enemyFace === "number") {
+            if (playerFace > enemyFace) window.lastDiceOutcome = "player";
+            else if (enemyFace > playerFace) window.lastDiceOutcome = "enemy";
+            else window.lastDiceOutcome = "draw";
         } else {
             console.warn("PLAYER_ATTACK: no dice outcome and no faces → abort");
             return;
@@ -894,18 +854,13 @@ window.addEventListener("PLAYER_ATTACK", async () => {
         await revealDice(outcome);
         window.lastDiceOutcome = null;
 
-        if (outcome === "player") {
-            await handlePlayerWinRound();
-        } else if (outcome === "enemy") {
-            await handleEnemyWinRound();
-        } else {
-            await handleDrawRound();
-        }
+        if (outcome === "player") await handlePlayerWinRound();
+        else if (outcome === "enemy") await handleEnemyWinRound();
+        else await handleDrawRound();
     } finally {
         window._combatBusy = false;
     }
 });
-
 
 // =======================================================
 // FALLBACK ROUTES
@@ -938,7 +893,6 @@ window.addEventListener("DRAW_EVENT", async () => {
     }
 });
 
-
 // =======================================================
 // PASS EVENT — Player chooses to skip the round
 // =======================================================
@@ -952,7 +906,6 @@ window.addEventListener("PASS_EVENT", async () => {
     }
 });
 
-
 // =======================================================
 // DICE RESOLUTION → STORE OUTCOME + STAMINA EXHAUSTION
 // =======================================================
@@ -964,7 +917,6 @@ window.addEventListener("DICE_FINISHED", async () => {
 
     try {
         if (typeof playerFace === "undefined" || typeof enemyFace === "undefined") {
-            window._diceResolving = false;
             return;
         }
 
@@ -975,18 +927,13 @@ window.addEventListener("DICE_FINISHED", async () => {
             return;
         }
 
-        if (playerFace > enemyFace) {
-            window.lastDiceOutcome = "player";
-        } else if (enemyFace > playerFace) {
-            window.lastDiceOutcome = "enemy";
-        } else {
-            window.lastDiceOutcome = "draw";
-        }
+        if (playerFace > enemyFace) window.lastDiceOutcome = "player";
+        else if (enemyFace > playerFace) window.lastDiceOutcome = "enemy";
+        else window.lastDiceOutcome = "draw";
 
         if (typeof xbar !== "undefined" && xbar.showCombat) {
             xbar.showCombat();
         }
-
     } finally {
         window._diceResolving = false;
     }

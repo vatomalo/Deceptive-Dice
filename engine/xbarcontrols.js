@@ -12,9 +12,9 @@ const BTN_H = 32;
 const XBAR_Y = 320;
 
 // Layout
-const BTN_ROLL_X   = 40;
+const BTN_ROLL_X = 40;
 const BTN_ATTACK_X = 40;
-const BTN_PASS_X   = 180;
+const BTN_PASS_X = 180;
 
 
 // ----------------------------------------------------
@@ -82,9 +82,9 @@ class XBarControls {
         this.game = game;
 
         // Buttons
-        this.rollBtn   = new XBarButton(BTN_ROLL_X,   XBAR_Y, "ROLL",   () => this.tryPress("roll"));
+        this.rollBtn = new XBarButton(BTN_ROLL_X, XBAR_Y, "ROLL", () => this.tryPress("roll"));
         this.attackBtn = new XBarButton(BTN_ATTACK_X, XBAR_Y, "ATTACK", () => this.tryPress("attack"));
-        this.passBtn   = new XBarButton(BTN_PASS_X,   XBAR_Y, "PASS",   () => this.tryPress("pass"));
+        this.passBtn = new XBarButton(BTN_PASS_X, XBAR_Y, "PASS", () => this.tryPress("pass"));
 
         // UI modes
         this.mode = "roll";     // "roll" or "combat"
@@ -104,9 +104,9 @@ class XBarControls {
         this.lock = true;
         setTimeout(() => (this.lock = false), 160); // small human debounce
 
-        if (type === "roll"   && this.rollBtn.enabled)   this.game.doRoll();
+        if (type === "roll" && this.rollBtn.enabled) this.game.doRoll();
         if (type === "attack" && this.attackBtn.enabled) this.game.doAttack();
-        if (type === "pass"   && this.passBtn.enabled)   this.game.doPass();
+        if (type === "pass" && this.passBtn.enabled) this.game.doPass();
     }
 
 
@@ -116,14 +116,14 @@ class XBarControls {
     showRoll() {
         this.mode = "roll";
 
-        this.rollBtn.visible   = true;
-        this.rollBtn.enabled   = true;
+        this.rollBtn.visible = true;
+        this.rollBtn.enabled = true;
 
         this.attackBtn.visible = false;
         this.attackBtn.enabled = false;
 
-        this.passBtn.visible   = false;
-        this.passBtn.enabled   = false;
+        this.passBtn.visible = false;
+        this.passBtn.enabled = false;
     }
 
 
@@ -133,14 +133,14 @@ class XBarControls {
     showCombat() {
         this.mode = "combat";
 
-        this.rollBtn.visible   = false;
-        this.rollBtn.enabled   = false;
+        this.rollBtn.visible = false;
+        this.rollBtn.enabled = false;
 
         this.attackBtn.visible = true;
         this.attackBtn.enabled = true;
 
-        this.passBtn.visible   = true;
-        this.passBtn.enabled   = true;
+        this.passBtn.visible = true;
+        this.passBtn.enabled = true;
     }
 
 
@@ -148,9 +148,9 @@ class XBarControls {
     // DISABLE ALL BUTTONS DURING ANIMATION/COMBAT
     // ------------------------------------------------
     disable() {
-        this.rollBtn.enabled   = false;
+        this.rollBtn.enabled = false;
         this.attackBtn.enabled = false;
-        this.passBtn.enabled   = false;
+        this.passBtn.enabled = false;
     }
 
 
@@ -165,8 +165,8 @@ class XBarControls {
         }
 
         if (this.mode === "combat") {
-            if (this.attackBtn.hit(mx, my))      this.attackBtn.cb();
-            else if (this.passBtn.hit(mx, my))   this.passBtn.cb();
+            if (this.attackBtn.hit(mx, my)) this.attackBtn.cb();
+            else if (this.passBtn.hit(mx, my)) this.passBtn.cb();
         }
     }
 
@@ -198,7 +198,7 @@ function bindXBarKeyboardControls() {
 
     document.addEventListener("keydown", e => {
         const key = e.key;
-        const xb  = window.xbar;
+        const xb = window.xbar;
 
         // ---------------------------
         // Materia menu toggle (Shift)
@@ -278,7 +278,7 @@ function startXBarGamepadLoop() {
 
     function pollGamepad() {
         const pads = navigator.getGamepads ? navigator.getGamepads() : null;
-        const pad  = pads && pads[0] ? pads[0] : null;
+        const pad = pads && pads[0] ? pads[0] : null;
 
         if (!pad) {
             requestAnimationFrame(pollGamepad);
@@ -294,6 +294,8 @@ function startXBarGamepadLoop() {
             pad.buttons[index] &&
             pad.buttons[index].pressed &&
             !prevButtons[index];
+        window.lastGamepadState = pad;
+
 
         const xb = window.xbar;
 

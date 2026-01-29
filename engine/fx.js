@@ -91,12 +91,8 @@ class FXStatic {
 // =======================================================
 
 // Katana image (prop) – stored in Artwork/FX/katana.png
-// Katana image (prop) – shared with UI nameplate & death FX
 const KATANA_IMG = new Image();
-KATANA_IMG.src = "./Artwork/FX/Katana.png";
-KATANA_IMG.onerror = (e) => {
-    console.warn("[FX] Katana image failed to load:", e);
-};
+KATANA_IMG.src   = "Artwork/FX/Katana.png";
 
 class KatanaSpinFX {
     constructor(x, y) {
@@ -116,8 +112,7 @@ class KatanaSpinFX {
     }
 
     draw(ctx) {
-        // Guard against broken/zero-size image
-        if (!KATANA_IMG.complete || !KATANA_IMG.naturalWidth) return;
+        if (!KATANA_IMG.complete) return;
 
         ctx.save();
         ctx.translate(this.x, this.y);
@@ -125,8 +120,8 @@ class KatanaSpinFX {
 
         const w = KATANA_IMG.width;
         const h = KATANA_IMG.height;
-
         ctx.drawImage(KATANA_IMG, -w / 2, -h / 2);
+
         ctx.restore();
     }
 
@@ -134,13 +129,6 @@ class KatanaSpinFX {
         return this.life <= 0;
     }
 }
-
-// Small helpers
-function spawnKatanaFX(x, y) {
-    if (!window.fxManager || !fxManager.list) return;
-    fxManager.list.push(new KatanaSpinFX(x, y));
-}
-
 
 class BloodParticleFX {
     constructor(x, y) {
@@ -531,41 +519,38 @@ class RainDrop {
 /* =======================================================
    ALWAYS-ON GRASS FOLIAGE (ground-level sway)
    =======================================================*/
+// =======================================================
+// Grass Foliage — beefed up for visibility
+// =======================================================
 class GrassBlade {
-    constructor(w, h) {
-        this.baseX   = Math.random() * w;
-        this.baseY   = h - 38 + Math.random() * 10;   // near ground
-        this.height  = 6 + Math.random() * 6;
-        this.width   = 1 + Math.random() * 1.5;
+    constructor(canvasW, canvasH) {
+        this.baseX = Math.random() * canvasW;
+        this.baseY = canvasH - 18 + Math.random() * 18;
 
-        this.t        = Math.random() * 1000;
-        this.waveFreq = 0.001 + Math.random() * 0.0015;
-        this.waveAmp  = 2 + Math.random() * 3;
+        // longer, thicker blades
+        this.height = 14 + Math.random() * 18;  // was ~6–12
+        this.width  = 2 + Math.random() * 2.5;  // was ~1-ish
 
-        this.color = Math.random() < 0.5
-            ? "rgba(90, 150, 90, ALPHA)"
-            : "rgba(110, 175, 100, ALPHA)";
+        this.bend   = 4 + Math.random() * 6;
+        this.phase  = Math.random() * Math.PI * 2;
+        this.speed  = 0.0008 + Math.random() * 0.0006;
+
+        // stronger alpha
+        this.alphaBase = 0.75 + Math.random() * 0.2;
     }
 
     update(dt) {
-        this.t += dt;
+        this.phase += this.speed * dt;
     }
 
     draw(ctx) {
-        const offset = Math.sin(this.t * this.waveFreq) * this.waveAmp;
-
-        // Base alpha
-        let alpha = 0.55;
-
-        // If WeatherFX snow is active, dim grass a bit (snow cover feel)
-        if (window.Weather && Weather.snowEnabled) {
-            alpha *= 0.4;
-        }
+        const offset = Math.sin(this.phase) * this.bend;
 
         ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = this.color.replace("ALPHA", "1");
+        ctx.globalAlpha = this.alphaBase;
+        ctx.strokeStyle = "#4fa93a";    // brighter green
         ctx.lineWidth   = this.width;
+        ctx.lineCap     = "round";
 
         ctx.beginPath();
         ctx.moveTo(this.baseX, this.baseY);
@@ -575,6 +560,7 @@ class GrassBlade {
         ctx.restore();
     }
 }
+
 
 
 /* =======================================================
@@ -646,7 +632,7 @@ class FXManager {
 
         // Always-on grass foliage
         if (this.canvasW && this.canvasH) {
-            const DENSITY = 22;  // tweak for more/less grass
+            const DENSITY = 96;  // tweak for more/less grass
             for (let i = 0; i < DENSITY; i++) {
                 this.grass.push(new GrassBlade(this.canvasW, this.canvasH));
             }

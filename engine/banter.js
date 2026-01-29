@@ -169,9 +169,38 @@ console.log("banter.js loaded");
                 ctx.textAlign = "center";
                 ctx.fillText(msg.text, x + panelW / 2, y + panelH / 2 + 1);
             }
+            if (Banter.systemMessage.active) {
+                const boxW = canvas.width * 0.65;
+                const boxH = 140;
+                const x = (canvas.width - boxW) / 2;
+                const y = canvas.height - boxH - 80;
+
+                ctx.save();
+                ctx.globalAlpha = 0.92;
+                ctx.fillStyle = "rgba(0,0,0,0.85)";
+                ctx.fillRect(x, y, boxW, boxH);
+
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, boxW, boxH);
+
+                ctx.fillStyle = "white";
+                ctx.font = "22px pixel";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(Banter.systemMessage.text, x + boxW / 2, y + boxH / 2);
+                ctx.restore();
+            }
+
 
             ctx.restore();
         }
+    };
+
+    Banter.systemMessage = {
+        active: false,
+        text: "",
+        resolve: null
     };
 
     // =======================================================
@@ -232,3 +261,46 @@ console.log("banter.js loaded");
 
     window.Banter = Banter;
 })();
+
+// =======================================================
+// SYSTEM MESSAGE HELPER
+// Pauses game, shows a message, waits for confirm (X / A)
+// =======================================================
+window.systemMessage = function (msg) {
+    return new Promise(resolve => {
+        
+        // Activate system message
+        Banter.systemMessage.active = true;
+        Banter.systemMessage.text = msg;
+        Banter.systemMessage.resolve = resolve;
+
+        // Disable combat UI
+        if (window.xbar) xbar.disable();
+
+        // Wait for input
+        function handler(e) {
+            const key = e.key?.toLowerCase();
+
+            const padConfirm =
+                window.lastGamepadState &&
+                window.lastGamepadState.buttons[0]?.pressed; // A button
+
+            const keyConfirm = key === "x";
+
+            if (keyConfirm || padConfirm) {
+                document.removeEventListener("keydown", handler);
+
+                Banter.systemMessage.active = false;
+                Banter.systemMessage.text = "";
+                const ok = Banter.systemMessage.resolve;
+                Banter.systemMessage.resolve = null;
+
+                if (window.xbar) xbar.showRoll();
+
+                if (ok) ok();
+            }
+        }
+
+        document.addEventListener("keydown", handler);
+    });
+};
