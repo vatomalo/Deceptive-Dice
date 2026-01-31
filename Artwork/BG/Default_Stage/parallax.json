@@ -1,19 +1,46 @@
 {
-  "default_stage": [
-    {
-      "src": "Artwork/BG/Default_Stage/Plant3.png",
-      "x": 140,
-      "scale": 13
-    },
-    {
-      "src": "Artwork/BG/Default_Stage/Plant2.png",
-      "x": 420,
-      "scale": 10
-    },
-    {
-      "src": "Artwork/BG/Default_Stage/Plant1.png",
-      "x": 670,
-      "scale": 10
-    }
-  ]
+  "default_stage": {
+    "layers": [
+      {
+        "src": "Artwork/BG/Default_Stage/0_sky.png",
+        "speed": 0.10,
+        "opacity": 0.2,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_stars.png",
+        "speed": 0.15,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_stars_trail.png",
+        "speed": 0.25,
+        "opacity": 0.1,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/1_spaceship.png",
+        "speed": 0.40,
+        "opacity": 0.1,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/2_clouds.png",
+        "speed": 0.60,
+        "opacity": 0.4,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/3_city.png",
+        "speed": 1.00,
+        "scale": 1,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/4_ground.png",
+        "speed": 0,
+        "static": true
+      }
+    ]
+  }
 }
