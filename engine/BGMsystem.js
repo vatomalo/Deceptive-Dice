@@ -8,13 +8,23 @@ console.log("MusicSystem loaded");
 // GLOBAL MOOD STATE
 // ----------------------------------------------------
 let currentMood = "calm";
+let lastMood = null;
 
 window.setMood = function (newMood) {
-    currentMood = newMood;
-    console.log("Mood set to:", currentMood);
-    if (currentMood== "calm")
-    {window.ParallaxBG.layer.speed = 1}
+  currentMood = newMood;
+  console.log("Mood set to:", currentMood);
+
+  // ✅ Parallax speed follows mood (no touching layers directly)
+  if (typeof window.setTickMood === "function") {
+    setTickMood(currentMood);
+  }
+
+  // Optional: change music when mood changes
+  if (window.MusicSystem && MusicSystem.playRandom) {
+    MusicSystem.playRandom(true); // force swap to new mood folder
+  }
 };
+
 
 // ----------------------------------------------------
 // Grab the single global audio element
@@ -72,27 +82,49 @@ const MusicSystem = {
     // =================================================
     // SIMPLE: PLAY RANDOM + LOOP (NO CROSSFADES)
     // =================================================
-    async playRandom() {
+    async playRandom(force = false) {
         if (!bgmEl) return;
 
-        // Hard stop anything currently playing
-        this.stop();
+        if (!force && this.lastMood === currentMood && this.currentName && !bgmEl.paused) return;
+        this.lastMood = currentMood;
 
+        // If we already have something playing and we're not forcing, don't restart
+        if (!force && this.currentName && !bgmEl.paused && bgmEl.currentTime > 0.2) {
+            return;
+        }
+
+        // Debounce: prevent spam calls during transitions
+        const now = performance.now();
+        if (!force) {
+            this._lastPlayReq = this._lastPlayReq || 0;
+            if (now - this._lastPlayReq < 800) return; // 0.8s guard
+            this._lastPlayReq = now;
+        }
+
+        // If we’re already on a track in the same mood, don’t hard-stop; just keep it
+        // (Optional: if you want mood-specific, track it)
+        // if (this._currentMood === currentMood && !force) return;
+        // this._currentMood = currentMood;
+
+        // Instead of hard stop, do a safe source swap:
         const name = this.baseNames[Math.floor(Math.random() * this.baseNames.length)];
-        const src  = this.buildTrackPath(name);
+        const src = this.buildTrackPath(name);
+
+        // If it's the same src, do nothing
+        if (!force && bgmEl.src && bgmEl.src.endsWith(src)) return;
 
         console.log("BGM →", src);
 
-        bgmEl.src    = src;
-        bgmEl.loop   = true;
+        // DON'T pause() first; just replace source
+        bgmEl.src = src;
+        bgmEl.loop = true;
         bgmEl.volume = 1.0;
-
         this.currentName = name;
 
         try {
             await bgmEl.play();
         } catch (err) {
-            console.warn("BGM autoplay blocked:", err);
+            console.warn("BGM play failed:", err);
         }
     },
 
@@ -146,5 +178,36 @@ const MusicSystem = {
         requestAnimationFrame(fadeOutStep);
     }
 };
+
+(() => {
+    const bgmEl = document.getElementById("audioPlayer");
+    if (!bgmEl) return;
+
+    const log = (ev) => {
+        console.log(`[BGM EVENT] ${ev.type}`, {
+            paused: bgmEl.paused,
+            ended: bgmEl.ended,
+            currentTime: bgmEl.currentTime,
+            src: bgmEl.currentSrc || bgmEl.src,
+            vol: bgmEl.volume,
+            muted: bgmEl.muted,
+            readyState: bgmEl.readyState,
+            networkState: bgmEl.networkState
+        });
+    };
+
+    ["pause", "ended", "error", "stalled", "abort", "emptied", "suspend", "waiting"].forEach(e =>
+        bgmEl.addEventListener(e, log)
+    );
+
+    // THE MONEY SHOT: trace any call to pause() on THIS element
+    const _pause = bgmEl.pause.bind(bgmEl);
+    bgmEl.pause = function () {
+        console.trace("[TRACE] bgmEl.pause() called from:");
+        return _pause();
+    };
+
+    console.log("[BGM TRACE] installed");
+})();
 
 window.MusicSystem = MusicSystem;

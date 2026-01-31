@@ -6,6 +6,8 @@
 // =======================================================
 console.log("main.js loaded");
 
+window.selectedMateriaSlot = window.selectedMateriaSlot || 0;
+
 // ===================================================
 // GLOBAL DICE HELPERS + STATE
 // ===================================================
@@ -314,38 +316,77 @@ document.addEventListener("DOMContentLoaded", () => {
 // MATERIA MENU CLICK HANDLER
 // ===================================================
 function handleMateriaClick(mx, my, canvas) {
+  if (!window.materiaMenuOpen) return false;
 
-    if (!window.materiaMenuOpen) return false;
+  const menuX = 80;
+  const menuY = 60;
+  const menuW = canvas.width - 160;
+  const menuH = canvas.height - 120;
 
-    const menuX = 80;
-    const menuY = 60;
-    const menuW = canvas.width - 160;
-    const menuH = canvas.height - 120;
-
-    // Click outside → close menu
-    if (mx < menuX || mx > menuX + menuW ||
-        my < menuY || my > menuY + menuH) {
-        window.materiaMenuOpen = false;
-        return true;
-    }
-
-    // List area
-    if (!window.MateriaInventory || !window.Materia) return true;
-
-    const startY = 150;
-    const lineH = 28;
-
-    const idx = Math.floor((my - startY) / lineH);
-    if (idx >= 0 && idx < MateriaInventory.length) {
-        const key = MateriaInventory[idx];
-        if (Materia.hasOwnProperty(key)) {
-            Materia[key] = !Materia[key];
-            console.log("Materia toggled:", key, "→", Materia[key]);
-        }
-    }
-
+  // Click outside → close
+  if (mx < menuX || mx > menuX + menuW || my < menuY || my > menuY + menuH) {
+    window.materiaMenuOpen = false;
     return true;
+  }
+
+  // Safety
+  if (!window.MateriaInventory || !window.MateriaSlots) return true;
+
+  // -----------------------------------------
+  // Slot selector row (top of menu)
+  // -----------------------------------------
+  // Example: 2 slots displayed as "M1" "M2"
+  const slotY = menuY + 70;
+  const slotX = menuX + 40;
+  const slotW = 70;
+  const slotH = 30;
+  const gap = 14;
+
+  for (let i = 0; i < window.MateriaSlots.maxSlots; i++) {
+    const bx = slotX + i * (slotW + gap);
+    const by = slotY;
+
+    if (mx >= bx && mx <= bx + slotW && my >= by && my <= by + slotH) {
+      window.selectedMateriaSlot = i;
+      console.log("[MATERIA] selected slot:", i);
+      return true;
+    }
+  }
+
+  // -----------------------------------------
+  // Inventory list click => equip into slot
+  // -----------------------------------------
+  const startY = menuY + 130;
+  const lineH = 28;
+
+  const idx = Math.floor((my - startY) / lineH);
+  if (idx < 0 || idx >= MateriaInventory.length) return true;
+
+  const picked = MateriaInventory[idx];
+
+  // Equip rules:
+  // - Clicking a materia equips it into the selected slot
+  // - If it's already equipped in another slot, swap or move
+  // - Clicking the same materia already in selected slot => unequip
+  const eq = window.MateriaSlots.equipped;
+
+  if (eq[window.selectedMateriaSlot] === picked) {
+    eq[window.selectedMateriaSlot] = null; // unequip
+    console.log("[MATERIA] unequipped", picked, "from slot", window.selectedMateriaSlot);
+  } else {
+    // If picked is equipped elsewhere, move it
+    const other = eq.indexOf(picked);
+    if (other !== -1) {
+      eq[other] = null;
+    }
+    eq[window.selectedMateriaSlot] = picked;
+    console.log("[MATERIA] equipped", picked, "to slot", window.selectedMateriaSlot);
+  }
+
+  window.rebuildMateriaFlags();
+  return true;
 }
+
 
 
 // ===================================================
