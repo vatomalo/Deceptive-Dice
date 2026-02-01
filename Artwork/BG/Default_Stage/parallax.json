@@ -1,0 +1,47 @@
+{
+  "default_stage": {
+    "layers": [
+      {
+        "src": "Artwork/BG/Default_Stage/stars.png",
+        "speed": 0.10,
+        "opacity": 0.2,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/moon.png",
+        "speed": 0.15,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/clouds.png",
+        "speed": 0.25,
+        "opacity": 0.1,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/clouds.png",
+        "speed": 0.40,
+        "opacity": 0.2,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/2_clouds.png",
+        "speed": 0.60,
+        "opacity": 0.4,
+        "scale": 0.9,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/city.png",
+        "speed": 1.00,
+        "scale": 1,
+        "static": false
+      },
+      {
+        "src": "Artwork/BG/Default_Stage/4_ground2.png",
+        "speed": 0,
+        "static": true
+      }
+    ]
+  }
+}
