@@ -662,6 +662,11 @@ async function handleEnemyWinRound() {
 
     const enemyMateria = (window.CurrentEnemy && CurrentEnemy.materia) ? CurrentEnemy.materia : {};
 
+    // TEMP BUFF: barrier reduces incoming damage
+    if (window.PlayerTemp?.barrierUntil && performance.now() < PlayerTemp.barrierUntil) {
+        dmg = Math.max(1, Math.floor(dmg * (PlayerTemp.barrierMul ?? 0.75)));
+    }
+
     if (enemyMateria.thorns && window.hpSamurai) {
         const t = Math.floor(dmg * 0.2);
         hpSamurai.setHP(hpSamurai.hp - t);
@@ -1016,20 +1021,20 @@ window.addEventListener("DICE_FINISHED", async () => {
 });
 
 window.addEventListener("MAX_GAMBIT_TRIGGER", async (ev) => {
-  // super small v1: a free extra hit if you were already winning
-  // (later you can make this a special QTE finisher)
-  try {
-    if (window._combatBusy) return;
-    window._combatBusy = true;
+    // super small v1: a free extra hit if you were already winning
+    // (later you can make this a special QTE finisher)
+    try {
+        if (window._combatBusy) return;
+        window._combatBusy = true;
 
-    // If player is winning on dice, do one immediate player win sequence
-    if (typeof playerFace === "number" && typeof enemyFace === "number" && playerFace > enemyFace) {
-      await handlePlayerWinRound();
-    } else {
-      // fallback: just give a strong buff flag or do nothing
-      window.forceCrit = true;
+        // If player is winning on dice, do one immediate player win sequence
+        if (typeof playerFace === "number" && typeof enemyFace === "number" && playerFace > enemyFace) {
+            await handlePlayerWinRound();
+        } else {
+            // fallback: just give a strong buff flag or do nothing
+            window.forceCrit = true;
+        }
+    } finally {
+        window._combatBusy = false;
     }
-  } finally {
-    window._combatBusy = false;
-  }
 });

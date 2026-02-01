@@ -1,201 +1,150 @@
 // =======================================================
-// materiaGambits.js — SMALL v1 (Max 3 gambits)
-// Includes "MAX gambit" (high threshold, rare trigger)
+// gambitsystem.js — FF12-like Gambits (v1)
+// - IF condition THEN cast equipped materia
+// - Start small: 2 gambit lines, 2 materia slots
 // =======================================================
-console.log("materiaGambits.js loaded");
+console.log("gambitsystem.js loaded");
 
-window.MateriaGambits = window.MateriaGambits || {};
+window.Gambits = window.Gambits || {
+  enabled: true,
 
-(function () {
-  const G = window.MateriaGambits;
+  // Max gambit lines allowed (start small)
+  maxLines: 2,
 
-  // hard cap for v1
-  G.MAX_RULES = 3;
+  // Priority order: top to bottom
+  // Each line: { enabled, cond, arg, actionSlot, cooldownMs, _nextOk }
+  lines: [
+    { enabled: true,  cond: "player_hp_below", arg: 0.35, actionSlot: 0, cooldownMs: 2200, _nextOk: 0 },
+    { enabled: true,  cond: "enemy_not_poisoned", arg: null, actionSlot: 1, cooldownMs: 1800, _nextOk: 0 },
+  ],
 
-  // simple on/off
-  G.enabled = true;
+  // How often we are allowed to fire ANY gambit (global throttle)
+  globalCooldownMs: 250,
+  _nextGlobalOk: 0,
+};
 
-  // cooldown so it can’t spam
-  G._cooldownUntil = 0;
+// -------------------------------------------------------
+// Helpers: safe percent reads
+// -------------------------------------------------------
+function getPlayerHP01() {
+  if (!window.hpSamurai) return 1;
+  return Math.max(0, Math.min(1, hpSamurai.hp / hpSamurai.maxHP));
+}
 
-  // Optional: separate cooldown for the MAX gambit
-  G._maxCooldownUntil = 0;
+function getEnemyHP01() {
+  if (!window.hpKnight || !window.CurrentEnemy) return 1;
+  return Math.max(0, Math.min(1, CurrentEnemy.hp / CurrentEnemy.maxHP));
+}
 
-  // ---------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------
-  const nowMs = () => performance.now();
+// -------------------------------------------------------
+// Condition evaluation
+// -------------------------------------------------------
+function evalCond(cond, arg) {
+  switch (cond) {
+    case "player_hp_below":  return getPlayerHP01() <= (arg ?? 0.5);
+    case "enemy_hp_below":   return getEnemyHP01() <= (arg ?? 0.5);
 
-  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+    case "enemy_not_poisoned":
+      return !(window.CurrentEnemy && CurrentEnemy.isPoisoned);
 
-  G.buildContext = function () {
-    // safe guards (don’t crash if something isn’t ready)
-    const pHP = window.hpSamurai?.hp ?? 0;
-    const pMax = window.hpSamurai?.maxHP ?? 1;
+    case "player_missing_hp":
+      // true if you can heal at all
+      return window.hpSamurai ? hpSamurai.hp < hpSamurai.maxHP : false;
 
-    const eHP = window.CurrentEnemy?.hp ?? 0;
-    const eMax = window.CurrentEnemy?.maxHP ?? 1;
+    case "always":
+      return true;
 
-    return {
-      player: {
-        hp: pHP,
-        maxHP: pMax,
-        hpPct: pHP / Math.max(1, pMax),
-        stamina: window.PlayerStamina?.current ?? 0,
-        staminaMax: window.PlayerStamina?.max ?? 1,
-        staminaPct: (window.PlayerStamina?.current ?? 0) / Math.max(1, window.PlayerStamina?.max ?? 1),
-        materia: window.Materia || {},
-        hearts: window.PlayerHearts ?? 0,
-        maxHearts: window.MaxHearts ?? 0,
-      },
-      enemy: {
-        hp: eHP,
-        maxHP: eMax,
-        hpPct: eHP / Math.max(1, eMax),
-        poisoned: !!window.CurrentEnemy?.isPoisoned
-      },
-      dice: {
-        player: (typeof window.playerFace === "number") ? window.playerFace : null,
-        enemy: (typeof window.enemyFace === "number") ? window.enemyFace : null,
-        gap: (typeof window.playerFace === "number" && typeof window.enemyFace === "number")
-          ? (window.playerFace - window.enemyFace)
-          : 0
-      }
-    };
-  };
+    default:
+      return false;
+  }
+}
 
-  // ---------------------------------------------------
-  // MAX GAMBIT (rare, cinematic)
-  // Conditions: you’re ahead on dice + stamina healthy + enemy low
-  // Action: triggers a special flow hook (you implement later)
-  // ---------------------------------------------------
-  G.tryMax = function (ctx) {
-    if (!G.enabled) return false;
+// -------------------------------------------------------
+// Action execution: maps "slot -> equipped materia key"
+// You already have MateriaSlots/equip logic (or we add it).
+// -------------------------------------------------------
+function getEquippedMateriaKey(slotIndex) {
+  const eq = window.MateriaSlots?.equipped;
+  if (!eq || !eq.length) return null;
+  return eq[slotIndex] || null;
+}
 
-    const n = nowMs();
-    if (n < G._maxCooldownUntil) return false;
+// This is where gambit triggers an ability.
+// Keep it tiny: v1 supports regen + poison + barrier (expand later).
+async function executeMateria(key) {
+  if (!key) return false;
 
-    // gate: need a meaningful dice gap
-    if (ctx.dice.player == null || ctx.dice.enemy == null) return false;
-    if (ctx.dice.gap < 2) return false;
+  // Don’t run during busy combat animation if you want strictness
+  // (optional: allow out-of-turn buffs)
+  if (window._combatBusy) return false;
 
-    // gate: enemy must be low enough to feel like a finisher
-    if (ctx.enemy.hpPct > 0.35) return false;
+  switch (key) {
+    case "regen":
+      // Heal small amount instantly (v1). Later: timed regen.
+      if (!window.hpSamurai) return false;
+      if (hpSamurai.hp >= hpSamurai.maxHP) return false;
 
-    // gate: you must have stamina (no free win when exhausted)
-    if (ctx.player.staminaPct < 0.40) return false;
+      const amt = Math.max(1, Math.floor(hpSamurai.maxHP * 0.22));
+      hpSamurai.setHP(Math.min(hpSamurai.maxHP, hpSamurai.hp + amt));
 
-    // must have “max materia” equipped to even be eligible
-    // (you can rename this later)
-    if (!ctx.player.materia.max) return false;
+      if (window.SFX && SFX.playUI) SFX.playUI("heal", 0.9);
+      if (window.Banter && Banter.push) Banter.push(`REGEN +${amt}`, "center", 900);
+      return true;
 
-    // chance: not guaranteed (keeps it exciting)
-    // gap 2 => ~18%, gap 3 => ~28%, gap 4+ => ~38%
-    const chance = clamp(0.18 + (ctx.dice.gap - 2) * 0.10, 0.18, 0.38);
-    if (Math.random() > chance) return false;
+    case "poison":
+      if (!window.CurrentEnemy) return false;
+      if (CurrentEnemy.isPoisoned) return false;
+      CurrentEnemy.isPoisoned = true;
 
-    // cooldown (rare moment)
-    G._maxCooldownUntil = n + 8000;
+      if (window.SFX && SFX.playUI) SFX.playUI("ui", 0.7);
+      if (window.Banter && Banter.push) Banter.push("POISON!", "center", 900);
+      return true;
 
-    console.log("[GAMBIT MAX] TRIGGERED", { chance, gap: ctx.dice.gap });
+    case "barrier":
+      // v1: temporary DEF buff for player
+      window.PlayerTemp = window.PlayerTemp || {};
+      if (PlayerTemp.barrierUntil && performance.now() < PlayerTemp.barrierUntil) return false;
 
-    // Visual feedback (optional)
-    if (window.Banter && Banter.push) Banter.push("MAX GAMBIT!", "center", 900);
-    if (window.SFX && SFX.playUI) SFX.playUI("ui", 0.9);
+      PlayerTemp.barrierUntil = performance.now() + 6500; // 6.5s
+      PlayerTemp.barrierMul = 0.70; // take 70% damage while active
 
-    // Hook: let combat.js consume this
-    window.dispatchEvent(new CustomEvent("MAX_GAMBIT_TRIGGER", { detail: ctx }));
-    return true;
-  };
+      if (window.Banter && Banter.push) Banter.push("BARRIER!", "center", 900);
+      if (window.SFX && SFX.playUI) SFX.playUI("ui", 0.8);
+      return true;
 
-  // ---------------------------------------------------
-  // Normal gambits (max 3)
-  // priority: lower runs first
-  // do() returns true when it actually acted
-  // ---------------------------------------------------
-  G.rules = [
-    // 1) Safety: if stamina is empty, auto-pass (prevents dead inputs)
-    {
-      key: "stamina_safety",
-      priority: 10,
-      enabled: true,
-      when: (ctx) => ctx.player.stamina <= 0,
-      do: () => {
-        console.log("[GAMBIT] stamina_safety -> PASS");
-        window.dispatchEvent(new Event("PASS_EVENT"));
-        return true;
-      }
-    },
+    default:
+      return false;
+  }
+}
 
-    // 2) Regen assist: if regen materia on and you’re hurt, tag a regen tick
-    // (you already have regen logic elsewhere; this is just a hook)
-    {
-      key: "regen_assist",
-      priority: 20,
-      enabled: true,
-      when: (ctx) => !!ctx.player.materia.regen && ctx.player.hpPct < 0.45,
-      do: () => {
-        console.log("[GAMBIT] regen_assist -> REGEN_TICK");
-        window.dispatchEvent(new Event("REGEN_TICK"));
-        if (window.Banter && Banter.push) Banter.push("REGEN", "center", 600);
-        return true;
-      }
-    },
+// -------------------------------------------------------
+// Public tick: call this once per frame (or 60fps tick)
+// -------------------------------------------------------
+window.Gambits.tick = async function gambitTick() {
+  if (!window.Gambits.enabled) return;
+  if (!window.hpSamurai || !window.CurrentEnemy) return;
 
-    // 3) Crit focus: if crit materia on and you’re ahead on dice, arm a crit flag
-    // This does NOT consume a turn; it just biases the next hit.
-    {
-      key: "crit_focus",
-      priority: 30,
-      enabled: true,
-      when: (ctx) => !!ctx.player.materia.crit && ctx.dice.gap >= 1,
-      do: () => {
-        console.log("[GAMBIT] crit_focus -> forceCrit ON");
-        window.forceCrit = true;
-        if (window.Banter && Banter.push) Banter.push("FOCUS", "center", 600);
-        return false; // doesn’t take action, just sets a flag
-      }
+  const now = performance.now();
+  if (now < window.Gambits._nextGlobalOk) return;
+
+  const lines = window.Gambits.lines || [];
+  const limit = Math.min(window.Gambits.maxLines || 0, lines.length);
+
+  for (let i = 0; i < limit; i++) {
+    const g = lines[i];
+    if (!g || !g.enabled) continue;
+    if (now < (g._nextOk || 0)) continue;
+
+    if (!evalCond(g.cond, g.arg)) continue;
+
+    const key = getEquippedMateriaKey(g.actionSlot);
+    if (!key) continue;
+
+    const ok = await executeMateria(key);
+    if (ok) {
+      g._nextOk = now + (g.cooldownMs || 1200);
+      window.Gambits._nextGlobalOk = now + window.Gambits.globalCooldownMs;
+      return; // only fire one gambit per tick (FF12 vibe)
     }
-  ].slice(0, G.MAX_RULES);
-
-  G.evaluate = function () {
-    if (!G.enabled) return { acted: false, maxed: false };
-
-    const n = nowMs();
-    if (n < G._cooldownUntil) return { acted: false, maxed: false };
-
-    const ctx = G.buildContext();
-
-    // First: MAX gambit check (rare)
-    const maxed = G.tryMax(ctx);
-    if (maxed) {
-      // small cooldown so it doesn’t immediately evaluate again
-      G._cooldownUntil = n + 300;
-      return { acted: true, maxed: true };
-    }
-
-    // Then: normal rules
-    const ordered = [...G.rules].sort((a, b) => a.priority - b.priority);
-
-    for (const r of ordered) {
-      if (!r.enabled) continue;
-
-      let ok = false;
-      try { ok = r.when(ctx); } catch (e) { console.warn("gambit when() failed", r.key, e); }
-
-      if (!ok) continue;
-
-      let acted = false;
-      try { acted = !!r.do(ctx); } catch (e) { console.warn("gambit do() failed", r.key, e); }
-
-      if (acted) {
-        G._cooldownUntil = n + 250; // small spam guard
-        return { acted: true, maxed: false };
-      }
-    }
-
-    // no action taken
-    return { acted: false, maxed: false };
-  };
-
-})();
+  }
+};

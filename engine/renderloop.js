@@ -55,6 +55,11 @@ function simTick(dt) {
         bg.update(dt, Ticks.bgSpeedMul);
     }
 
+    if (window.Gambits && typeof Gambits.tick === "function") {
+        Gambits.tick();
+    }
+
+
     if (window.decor && typeof decor.update === "function") decor.update(dt);
     if (window.fxManager && typeof fxManager.update === "function") fxManager.update(dt);
 

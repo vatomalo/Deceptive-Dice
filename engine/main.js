@@ -388,6 +388,7 @@ function handleMateriaClick(mx, my, canvas) {
 }
 
 
+let stageSelect = "default_stage";
 
 // ===================================================
 // CORE GAME INIT
@@ -395,8 +396,8 @@ function handleMateriaClick(mx, my, canvas) {
 async function startGame() {
 
     // ---------------- BG + FX ----------------
-    window.bg = new ParallaxBG("default_stage");
-    window.decor = new Decor("default_stage");
+    window.bg = new ParallaxBG(stageSelect);
+    window.decor = new Decor(stageSelect);
     window.fxManager = new FXManager();
 
 

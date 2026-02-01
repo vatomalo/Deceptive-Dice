@@ -8,33 +8,34 @@ console.log("WeatherFX.js loaded");
 window.Weather = {
     // feature toggles (auto-driven from targets)
     sakuraEnabled: true,
-    rainEnabled:   true,
-    snowEnabled:   false,
-    grassEnabled:  false,
+    rainEnabled: true,
+    snowEnabled: false,
+    grassEnabled: false,
 
     // particle buffers
     petals: [],
-    drops:  [],
+    drops: [],
     flakes: [],
-    grass:  [],
+    grass: [],
 
     // target counts (preferred way: PaletteSystem / Director set these)
     targetPetals: 0,
-    targetDrops:  0,
+    targetDrops: 0,
     targetFlakes: 0,
-    targetGrass:  0,
+    targetGrass: 0,
 
     // legacy compat fields (updated internally)
     maxPetals: 0,
-    maxDrops:  0,
+    maxDrops: 0,
 
     // smoothed float targets
     currentPetalTarget: 0,
-    currentDropTarget:  0,
+    currentDropTarget: 0,
     currentFlakeTarget: 0,
     currentGrassTarget: 0,
 
     fadeSpeed: 0.02  // 0.02 = soft fade, 0.08 = snappy
+
 };
 
 // Short canvas helper (for spawning)
@@ -56,30 +57,30 @@ class WeatherSakuraPetal {
         this.x = Math.random() * w;
         this.y = -20 - Math.random() * 40;
 
-        this.size    = 5 + Math.random() * 5;
-        this.speedY  = 0.25 + Math.random() * 0.55;
-        this.speedX  = -0.3  + Math.random() * 0.6;
+        this.size = 5 + Math.random() * 5;
+        this.speedY = 0.25 + Math.random() * 0.55;
+        this.speedX = -0.3 + Math.random() * 0.6;
 
         this.waveAmp = 4 + Math.random() * 4;
-        this.waveFreq= 0.001 + Math.random() * 0.0015;
-        this.t       = Math.random() * 1000;
+        this.waveFreq = 0.001 + Math.random() * 0.0015;
+        this.t = Math.random() * 1000;
 
         this.rotation = Math.random() * Math.PI * 2;
         this.rotSpeed = (Math.random() - 0.5) * 0.015;
 
-        this.life    = 3500 + Math.random() * 2800;
+        this.life = 3500 + Math.random() * 2800;
         this.maxLife = this.life;
 
         // subtle color variation
         const shade = 200 + Math.floor(Math.random() * 40);
-        this.color  = `rgb(255,${shade},${shade + 10})`;
+        this.color = `rgb(255,${shade},${shade + 10})`;
 
         this.screenH = h;
     }
 
     update(dt) {
         this.life -= dt;
-        this.t    += dt;
+        this.t += dt;
 
         this.x += this.speedX + Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02);
         this.y += this.speedY;
@@ -124,7 +125,7 @@ class WeatherRainDrop {
         this.x = Math.random() * w;
         this.y = -10;
 
-        this.len   = 4 + Math.random() * 4;
+        this.len = 4 + Math.random() * 4;
         this.speed = 3 + Math.random() * 4;
 
         this.color = Math.random() < 0.5
@@ -167,20 +168,20 @@ class WeatherSnowFlake {
         this.x = Math.random() * w;
         this.y = -10 - Math.random() * 30;
 
-        this.radius  = 1.5 + Math.random() * 2.0;
-        this.speedY  = 0.25 + Math.random() * 0.45;
+        this.radius = 1.5 + Math.random() * 2.0;
+        this.speedY = 0.25 + Math.random() * 0.45;
         this.waveAmp = 6 + Math.random() * 6;
-        this.waveFreq= 0.0008 + Math.random() * 0.0012;
-        this.t       = Math.random() * 1000;
+        this.waveFreq = 0.0008 + Math.random() * 0.0012;
+        this.t = Math.random() * 1000;
 
-        this.life    = 5000 + Math.random() * 4000;
+        this.life = 5000 + Math.random() * 4000;
         this.maxLife = this.life;
         this.screenH = h;
     }
 
     update(dt) {
         this.life -= dt;
-        this.t    += dt;
+        this.t += dt;
 
         this.y += this.speedY;
         this.x += Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02);
@@ -192,7 +193,7 @@ class WeatherSnowFlake {
 
         ctx.save();
         ctx.globalAlpha = 0.3 + 0.7 * t;
-        ctx.fillStyle   = "rgb(245,245,255)";
+        ctx.fillStyle = "rgb(245,245,255)";
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -217,25 +218,25 @@ class WeatherGrassFoliage {
         const h = c ? c.height : 360;
 
         this.xBase = Math.random() * w;
-        this.y     = h - 38 + Math.random() * 10;    // near ground
-        this.height= 6 + Math.random() * 6;
+        this.y = h - 38 + Math.random() * 10;    // near ground
+        this.height = 6 + Math.random() * 6;
         this.width = 1 + Math.random() * 1.5;
 
-        this.t        = Math.random() * 1000;
+        this.t = Math.random() * 1000;
         this.waveFreq = 0.001 + Math.random() * 0.0015;
-        this.waveAmp  = 2 + Math.random() * 3;
+        this.waveAmp = 2 + Math.random() * 3;
 
         this.color = Math.random() < 0.5
             ? "rgba(90, 150, 90, 0.85)"
             : "rgba(110, 175, 100, 0.9)";
 
-        this.life    = 6000 + Math.random() * 6000;
+        this.life = 6000 + Math.random() * 6000;
         this.maxLife = this.life;
     }
 
     update(dt) {
         this.life -= dt;
-        this.t    += dt;
+        this.t += dt;
     }
 
     draw(ctx) {
@@ -246,7 +247,7 @@ class WeatherGrassFoliage {
         ctx.save();
         ctx.globalAlpha = 0.4 + 0.6 * tNorm;
         ctx.strokeStyle = this.color;
-        ctx.lineWidth   = this.width;
+        ctx.lineWidth = this.width;
 
         ctx.beginPath();
         ctx.moveTo(this.xBase, this.y);
@@ -265,32 +266,46 @@ class WeatherGrassFoliage {
 // =======================================================
 // UPDATE + DRAW
 // =======================================================
-window.updateWeatherFX = function(dt) {
+window.updateWeatherFX = function (dt) {
     const c = getCanvas();
     if (!c) return;
 
     const f = Weather.fadeSpeed;
 
+    const allow = window.DecorWeather || { sakura: false, snow: false };
+
+    // If decor doesn't allow it, force targets to 0 (even if director tried)
+    if (!allow.sakura) {
+        Weather.targetPetals = 0;
+        Weather.currentPetalTarget = 0; // if you use smoothing
+        Weather.petals.length = 0;
+    }
+    if (!allow.snow) {
+        Weather.targetFlakes = 0;
+        Weather.currentFlakeTarget = 0; // if you use smoothing
+        Weather.flakes.length = 0;
+    }
+
     // smooth targets
     Weather.currentPetalTarget += (Weather.targetPetals - Weather.currentPetalTarget) * f;
-    Weather.currentDropTarget  += (Weather.targetDrops  - Weather.currentDropTarget)  * f;
+    Weather.currentDropTarget += (Weather.targetDrops - Weather.currentDropTarget) * f;
     Weather.currentFlakeTarget += (Weather.targetFlakes - Weather.currentFlakeTarget) * f;
-    Weather.currentGrassTarget += (Weather.targetGrass  - Weather.currentGrassTarget) * f;
+    Weather.currentGrassTarget += (Weather.targetGrass - Weather.currentGrassTarget) * f;
 
     const maxPetals = Weather.currentPetalTarget | 0;
-    const maxDrops  = Weather.currentDropTarget  | 0;
+    const maxDrops = Weather.currentDropTarget | 0;
     const maxFlakes = Weather.currentFlakeTarget | 0;
-    const maxGrass  = Weather.currentGrassTarget| 0;
+    const maxGrass = Weather.currentGrassTarget | 0;
 
     // keep legacy fields in sync for old code
     Weather.maxPetals = maxPetals;
-    Weather.maxDrops  = maxDrops;
+    Weather.maxDrops = maxDrops;
 
     // toggles
     Weather.sakuraEnabled = maxPetals > 0;
-    Weather.rainEnabled   = maxDrops  > 0;
-    Weather.snowEnabled   = maxFlakes > 0;
-    Weather.grassEnabled  = maxGrass  > 0;
+    Weather.rainEnabled = maxDrops > 0;
+    Weather.snowEnabled = maxFlakes > 0;
+    Weather.grassEnabled = maxGrass > 0;
 
     // Maintain Sakura stream
     if (Weather.sakuraEnabled) {
@@ -334,18 +349,18 @@ window.updateWeatherFX = function(dt) {
 
     // Update & cull all
     Weather.petals = Weather.petals.filter(p => { p.update(dt); return !p.dead; });
-    Weather.drops  = Weather.drops.filter(d => { d.update(dt); return !d.dead; });
+    Weather.drops = Weather.drops.filter(d => { d.update(dt); return !d.dead; });
     Weather.flakes = Weather.flakes.filter(fx => { fx.update(dt); return !fx.dead; });
-    Weather.grass  = Weather.grass.filter(g => { g.update(dt); return !g.dead; });
+    Weather.grass = Weather.grass.filter(g => { g.update(dt); return !g.dead; });
 };
 
-window.drawWeatherFX = function(ctx) {
+window.drawWeatherFX = function (ctx) {
     // Draw order: grass under characters, but you’re already drawing this last
     // So safest is: petals + snow + rain, grass last to sit on ground
     for (let p of Weather.petals) p.draw(ctx);
     for (let f of Weather.flakes) f.draw(ctx);
-    for (let d of Weather.drops)  d.draw(ctx);
-    for (let g of Weather.grass)  g.draw(ctx);
+    for (let d of Weather.drops) d.draw(ctx);
+    for (let g of Weather.grass) g.draw(ctx);
 };
 
 
@@ -398,72 +413,72 @@ function applyWeatherMode(mode) {
     switch (mode) {
         case 0: // clear
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 0;
+            Weather.targetGrass = 0;
             break;
 
         case 1: // light sakura
             Weather.targetPetals = 14;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 6;
+            Weather.targetGrass = 6;
             break;
 
         case 2: // heavy sakura
             Weather.targetPetals = 36;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 10;
+            Weather.targetGrass = 10;
             break;
 
         case 3: // light rain
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 70;
+            Weather.targetDrops = 70;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 4;
+            Weather.targetGrass = 4;
             break;
 
         case 4: // heavy rain
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 130;
+            Weather.targetDrops = 130;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 0;
+            Weather.targetGrass = 0;
             break;
 
         case 5: // sakura + rain (dramatic)
             Weather.targetPetals = 24;
-            Weather.targetDrops  = 90;
+            Weather.targetDrops = 90;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 8;
+            Weather.targetGrass = 8;
             break;
 
         case 6: // light snow
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 40;
-            Weather.targetGrass  = 0;
+            Weather.targetGrass = 0;
             break;
 
         case 7: // heavy snow
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 90;
-            Weather.targetGrass  = 0;
+            Weather.targetGrass = 0;
             break;
 
         case 8: // grass breeze
             Weather.targetPetals = 0;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 16;
+            Weather.targetGrass = 16;
             break;
 
         case 9: // spring wind: grass + petals
             Weather.targetPetals = 20;
-            Weather.targetDrops  = 0;
+            Weather.targetDrops = 0;
             Weather.targetFlakes = 0;
-            Weather.targetGrass  = 16;
+            Weather.targetGrass = 16;
             break;
     }
 }

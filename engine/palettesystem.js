@@ -1,11 +1,23 @@
 // =======================================================
 // palettesystem.js — Day/Night Cycle (CV2 / NG1-2 mood)
-// with weather + proper smooth transitions
+// Smooth transitions + WORLD tint helpers
+//
+// IMPORTANT RULE:
+// - PaletteSystem NEVER enables sakura or snow by itself.
+// - It may only set petals/flakes targets if decor.json explicitly allows.
+//   (window.DecorWeather = { sakura: bool, snow: bool })
+//
+// NOTES:
+// - This file does NOT randomize weather. It only suggests targets by phase.
+// - If you use WeatherDirector, you should disable Palette weather targets
+//   OR set PaletteSystem.enabledWeather = false.
 // =======================================================
 
 console.log("PaletteSystem loaded");
 
-// Small helpers
+// -------------------------------------------------------
+// Helpers
+// -------------------------------------------------------
 function lerp(a, b, t) {
     return a + (b - a) * t;
 }
@@ -21,7 +33,7 @@ function lerpColor(a, b, t) {
 
 // Smoothstep easing so transitions feel organic
 function easeSmooth(t) {
-    return t * t * (3 - 2 * t); // 0→1 with soft in/out
+    return t * t * (3 - 2 * t);
 }
 
 // -------------------------------------------------------
@@ -29,26 +41,10 @@ function easeSmooth(t) {
 // (overlay = [r,g,b,alpha], darkness = extra black veil)
 // -------------------------------------------------------
 const PALETTE_PROFILES = {
-    dawn: {
-        // Slightly cool violet, soft but not milky
-        overlay: [130, 110, 170, 0.22],
-        darkness: 0.06
-    },
-    day: {
-        // Cooler, subtle blue — keeps contrast, no washout
-        overlay: [200, 220, 255, 0.10],
-        darkness: 0.03
-    },
-    dusk: {
-        // Deeper red-purple, more dramatic
-        overlay: [160, 70, 90, 0.32],
-        darkness: 0.14
-    },
-    night: {
-        // Deep indigo / navy, heavy mood
-        overlay: [25, 30, 75, 0.55],
-        darkness: 0.24
-    }
+    dawn:  { overlay: [130, 110, 170, 0.22], darkness: 0.06 },
+    day:   { overlay: [200, 220, 255, 0.10], darkness: 0.03 },
+    dusk:  { overlay: [160,  70,  90, 0.32], darkness: 0.14 },
+    night: { overlay: [ 25,  30,  75, 0.55], darkness: 0.24 }
 };
 
 // Order of phases
@@ -62,13 +58,12 @@ const BASE_DURATIONS = {
     night: 30000
 };
 
-
 // =======================================================
 // PaletteSystem — singleton
 // =======================================================
 class PaletteSystemClass {
     constructor() {
-        this.currentPhase  = "day";   // where we "live" narratively
+        this.currentPhase  = "day";
         this.phaseTime     = 0;
         this.phaseDuration = BASE_DURATIONS.day;
 
@@ -81,8 +76,12 @@ class PaletteSystemClass {
         this.currentOverlay  = [0, 0, 0, 0];
         this.currentDarkness = 0;
 
-        this.enabled   = true;
+        this.enabled = true;
         this.timeScale = 1.0;
+
+        // If you have WeatherDirector running, you probably want this false.
+        // If true, PaletteSystem will suggest targets every phase change/start.
+        this.enabledWeather = true;
 
         this._applyProfile(PALETTE_PROFILES.day);
         this._applyWeatherForPhase("day");
@@ -118,42 +117,78 @@ class PaletteSystemClass {
         this.currentDarkness = profile.darkness;
     }
 
-    // WEATHER HOOK: tie Sakura/Rain to phase
+    // -------------------------------------------------------
+    // WEATHER HOOK (GATED BY DECOR!)
+    //
+    // - Rain can be time-of-day driven.
+    // - Sakura petals ONLY if window.DecorWeather.sakura === true
+    // - Snow flakes ONLY if window.DecorWeather.snow === true
+    //
+    // This system does NOT "enable" effects; it only suggests targets.
+    // WeatherFX must still clamp targets if decor disallows.
+    // -------------------------------------------------------
     _applyWeatherForPhase(phase) {
+        if (!this.enabledWeather) return;
         if (!window.Weather) return;
+
+        const allow = window.DecorWeather || { sakura: false, snow: false };
 
         let petals = 0;
         let drops  = 0;
+        let flakes = 0;
 
+        // Time-of-day mood targets
         switch (phase) {
             case "dawn":
-                // Strong sakura, light rain
+                // Strong petals + light rain (IF sakura allowed)
                 petals = 40;
                 drops  = 20;
+                flakes = 0;
                 break;
+
             case "day":
-                // Light sakura, almost no rain
+                // Light petals + almost no rain (IF sakura allowed)
                 petals = 18;
                 drops  = 4;
+                flakes = 0;
                 break;
+
             case "dusk":
-                // Mixed: some petals, mid rain
+                // Mixed mood: some petals, mid rain (IF sakura allowed)
                 petals = 24;
                 drops  = 70;
+                flakes = 0;
                 break;
+
             case "night":
-                // Heavy rain, rare petals
+                // Heavy rain, rare petals (IF sakura allowed)
                 petals = 5;
                 drops  = 140;
+                flakes = 0;
                 break;
         }
 
+        // HARD GATES: never produce sakura/snow unless decor explicitly allows it
+        if (!allow.sakura) petals = 0;
+        if (!allow.snow)   flakes = 0;
+
+        // Apply to WeatherFX targets (must match your WeatherFX property names)
         Weather.targetPetals = petals;
         Weather.targetDrops  = drops;
 
-        // keep compatibility if anything still reads these
-        Weather.maxPetals = petals;
-        Weather.maxDrops  = drops;
+        // Only write flakes if your WeatherFX uses it
+        if ("targetFlakes" in Weather) {
+            Weather.targetFlakes = flakes;
+        }
+
+        // Compatibility mirrors
+        if ("maxPetals" in Weather) Weather.maxPetals = petals;
+        if ("maxDrops"  in Weather) Weather.maxDrops  = drops;
+
+        // Optional: mirror flakes for compatibility if present
+        if ("maxFlakes" in Weather && "targetFlakes" in Weather) {
+            Weather.maxFlakes = flakes;
+        }
     }
 
     // Begin a smooth transition from the current phase to target
@@ -192,7 +227,6 @@ class PaletteSystemClass {
             return;
         }
 
-        // Smooth transition from currentPhase to phase
         this._beginTransition(phase);
     }
 
@@ -219,7 +253,7 @@ class PaletteSystemClass {
         dt *= this.timeScale;
         this.phaseTime += dt;
 
-        // Auto cycle: when we have "lived" in currentPhase long enough, start moving to next
+        // Auto cycle
         if (!this.inTransition && this.phaseTime >= this.phaseDuration) {
             const next = this._getNextPhase(this.currentPhase);
             this._beginTransition(next);
@@ -227,31 +261,32 @@ class PaletteSystemClass {
 
         // Transition blending
         if (this.inTransition) {
-            const TRANSITION_TIME = 4000; // ms, shorter and smoother
+            const TRANSITION_TIME = 4000;
 
             this.transitionT += dt / TRANSITION_TIME;
             if (this.transitionT >= 1) {
                 this.transitionT  = 1;
                 this.inTransition = false;
 
-                // We have fully arrived at toPhase
-                this.currentPhase  = this.toPhase;
-                this.fromPhase     = this.toPhase;
+                // Fully arrived
+                this.currentPhase = this.toPhase;
+                this.fromPhase    = this.toPhase;
             }
         }
 
-        // Compute blended palette from fromPhase → toPhase
         const fromProfile = PALETTE_PROFILES[this.fromPhase];
         const toProfile   = PALETTE_PROFILES[this.toPhase];
 
-        // When not transitioning, we’re fully at currentPhase
-        let t = this.inTransition ? easeSmooth(this.transitionT) : 1.0;
+        const t = this.inTransition ? easeSmooth(this.transitionT) : 1.0;
 
         this.currentOverlay  = lerpColor(fromProfile.overlay, toProfile.overlay, t);
         this.currentDarkness = lerp(fromProfile.darkness, toProfile.darkness, t);
     }
 
+    // -------------------------------------------------------
     // Apply tint on the whole scene (world layer only)
+    // (Call after world is drawn, before UI)
+    // -------------------------------------------------------
     applyWorldTint(ctx, canvas) {
         if (!this.enabled) return;
         if (!ctx || !canvas) return;
@@ -260,7 +295,7 @@ class PaletteSystemClass {
 
         ctx.save();
 
-        // Darkness veil first (NG 1–2 somber contrast)
+        // Darkness veil first
         if (this.currentDarkness > 0) {
             ctx.globalAlpha = this.currentDarkness;
             ctx.fillStyle = "black";
@@ -268,9 +303,11 @@ class PaletteSystemClass {
         }
 
         // Then colored overlay
-        ctx.globalAlpha = a;
-        ctx.fillStyle = `rgba(${r|0}, ${g|0}, ${b|0}, 1)`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (a > 0) {
+            ctx.globalAlpha = a;
+            ctx.fillStyle = `rgba(${r|0}, ${g|0}, ${b|0}, 1)`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
         ctx.restore();
     }
@@ -279,7 +316,6 @@ class PaletteSystemClass {
     applyVignette(ctx, canvas) {
         if (!this.enabled) return;
         if (!ctx || !canvas) return;
-
         if (this.currentPhase !== "night") return;
 
         const strength = 0.35;
@@ -300,6 +336,15 @@ class PaletteSystemClass {
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
+    }
+
+    // Convenience getters
+    getOverlay() {
+        return this.currentOverlay.slice();
+    }
+
+    getDarkness() {
+        return this.currentDarkness;
     }
 }
 
