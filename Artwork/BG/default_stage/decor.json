@@ -1,14 +1,14 @@
 {
   "default_stage": [
     {
-      "src": "Artwork/BG/Default_Stage/Grass4.png",
+      "src": "Artwork/BG/default_stage/Grass4.png",
       "x": 0,
       "y": 320,
       "scale": 4,
       "z": "back"
     },
     {
-      "src": "Artwork/BG/Default_Stage/Tree.png",
+      "src": "Artwork/BG/default_stage/Tree.png",
       "x": 190,
       "y": 320,
       "scale": 3,
@@ -16,14 +16,14 @@
       "weather": {  "snow": false, "sakura": false }
     },
     {
-      "src": "Artwork/BG/Default_Stage/lantern.png",
+      "src": "Artwork/BG/default_stage/lantern.png",
       "x": 400,
       "y": 320,
       "scale": 4,
       "z": "back"
     },
     {
-      "src": "Artwork/BG/Default_Stage/rock2.png",
+      "src": "Artwork/BG/default_stage/rock2.png",
       "x": 440,
       "y": 375,
       "scale": 3,
