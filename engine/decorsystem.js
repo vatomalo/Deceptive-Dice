@@ -234,7 +234,7 @@ class Decor {
 
     async _load() {
         try {
-            const res = await fetch("Artwork/BG/decor.json");
+            const res = await fetch(`Artwork/BG/${this.stage}/decor.json`);
             const data = await res.json();
 
             const stageItems = data[this.stage];
