@@ -1,7 +1,7 @@
 {
   "default_stage": [
     {
-      "src": "Artwork/BG/default_stage/Grass4.png",
+      "src": "Artwork/BG/default_stage/grass4.png",
       "x": 0,
       "y": 320,
       "scale": 4,
@@ -30,4 +30,5 @@
       "z": "front"
     }
   ]
+
 }
