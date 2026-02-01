@@ -29,7 +29,7 @@ class ParallaxBG {
   // ======================================================
   async _loadConfig() {
     try {
-      const res = await fetch("Artwork/BG/parallax.json");
+      const res = await fetch(`Artwork/BG/${this.stageName}/parallax.json`);
       const data = await res.json();
 
       const stage = data[this.stageName];
