@@ -1,0 +1,33 @@
+{
+  "forest_stage": [
+    {
+      "src": "Artwork/BG/forest_stage/Tree.png",
+      "x": 0,
+      "y": 320,
+      "scale": 4,
+      "z": "back"
+    },
+    {
+      "src": "Artwork/BG/forest_stage/Tree.png",
+      "x": 190,
+      "y": 320,
+      "scale": 3,
+      "z": "back",
+      "weather": {  "snow": false, "sakura": false }
+    },
+    {
+      "src": "Artwork/BG/forest_stage/Tree.png",
+      "x": 400,
+      "y": 320,
+      "scale": 4,
+      "z": "back"
+    },
+    {
+      "src": "Artwork/BG/forest_stage/rock2.png",
+      "x": 440,
+      "y": 375,
+      "scale": 3,
+      "z": "front"
+    }
+  ]
+}
