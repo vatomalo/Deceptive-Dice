@@ -26,6 +26,19 @@ if (!window.MateriaInventory) {
 // Materia menu open flag
 window.materiaMenuOpen = false;
 
+window.Camera = {
+  x: 0,
+  y: 0,
+  targetX: 0,
+  speed: 900,        // px/sec
+  reset() { this.x = this.y = this.targetX = 0; },
+  update(dt) {
+    if (dt > 1) dt /= 1000;
+    const dx = this.targetX - this.x;
+    const step = Math.sign(dx) * Math.min(Math.abs(dx), this.speed * dt);
+    this.x += step;
+  }
+};
 
 // =======================================================
 // GAME ACTION ROUTER — triggers combat.js events

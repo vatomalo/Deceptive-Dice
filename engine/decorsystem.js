@@ -211,6 +211,7 @@ function _makePaletteSwappedImage(img, ramp, strength) {
 // Decor system with separate BACK and FRONT buffers
 // + DecorWeather flags (sakura/snow ONLY if decor.json says so)
 // + Per-item SNES palette swapping (palette: "pink"/"desert"/etc.)
+// + Stage transition support: await decor.loadStage("new_stage")
 // =======================================================
 class Decor {
     constructor(stage = "default_stage") {
@@ -229,13 +230,40 @@ class Decor {
         // Default OFF. Decor.json explicitly enables.
         window.DecorWeather = window.DecorWeather || { sakura: false, snow: false };
 
-        this._load();
+        // Prevent stale async loads from applying after a newer stage swap
+        this._loadToken = 0;
+
+        this.loadStage(stage);
     }
 
-    async _load() {
+    // ===================================================
+    // PUBLIC: STAGE SWAP (awaitable)
+    // ===================================================
+    async loadStage(stage) {
+        const token = ++this._loadToken;
+
+        this.stage = stage;
+
+        // reset flags so you don't draw old buffers
+        this.readyBack = false;
+        this.readyFront = false;
+
+        this.items = [];
+        this.backItems = [];
+        this.frontItems = [];
+
+        this.backBuffer = null;
+        this.frontBuffer = null;
+
+        // reset permissions (will be recomputed on load)
+        window.DecorWeather = { sakura: false, snow: false };
+
         try {
             const res = await fetch(`Artwork/BG/${this.stage}/decor.json`);
             const data = await res.json();
+
+            // If another stage load started after this one, abort
+            if (token !== this._loadToken) return;
 
             const stageItems = data[this.stage];
             if (!stageItems || !Array.isArray(stageItems)) {
@@ -247,6 +275,9 @@ class Decor {
             this.items = await Promise.all(
                 stageItems.map(item => this._loadItem(item))
             );
+
+            // If another stage load started after this one, abort
+            if (token !== this._loadToken) return;
 
             // Compute weather permissions from decor items
             this._updateDecorWeatherFlags();
@@ -260,6 +291,50 @@ class Decor {
         } catch (err) {
             console.error("Decor load error:", err);
         }
+    }
+
+    // ===================================================
+    // OPTIONAL: APPLY FROM ALREADY-LOADED JSON (atomic commit)
+    // If you load JSON elsewhere (transition manager), call:
+    // decor.applyStageData("snow", decorJSON)
+    // ===================================================
+    applyStageData(stage, data) {
+        const token = ++this._loadToken;
+
+        this.stage = stage;
+
+        this.readyBack = false;
+        this.readyFront = false;
+
+        this.items = [];
+        this.backItems = [];
+        this.frontItems = [];
+
+        this.backBuffer = null;
+        this.frontBuffer = null;
+
+        window.DecorWeather = { sakura: false, snow: false };
+
+        const stageItems = data && data[stage];
+        if (!stageItems || !Array.isArray(stageItems)) {
+            console.warn("Decor.applyStageData: No items for stage", stage);
+            return;
+        }
+
+        Promise.all(stageItems.map(item => this._loadItem(item)))
+            .then(items => {
+                if (token !== this._loadToken) return;
+
+                this.items = items;
+
+                this._updateDecorWeatherFlags();
+
+                this.backItems = this.items.filter(i => i.z !== "front");
+                this.frontItems = this.items.filter(i => i.z === "front");
+
+                this._buildBuffers();
+            })
+            .catch(err => console.error("Decor.applyStageData error:", err));
     }
 
     _loadItem(item) {
@@ -284,6 +359,22 @@ class Decor {
                         ? item.paletteStrength
                         : 1.0
                 });
+            img.onerror = () => {
+                console.warn("Decor image failed to load:", item && item.src);
+                // Resolve anyway so we don't stall stage load
+                resolve({
+                    img: null,
+                    x: item?.x || 0,
+                    y: item?.y || 0,
+                    scale: item?.scale || 1,
+                    z: item?.z || "back",
+                    weather: item?.weather || null,
+                    palette: item?.palette || null,
+                    paletteStrength: (typeof item?.paletteStrength === "number")
+                        ? item.paletteStrength
+                        : 1.0
+                });
+            };
             img.src = item.src;
         });
     }
@@ -317,6 +408,8 @@ class Decor {
         bctx.imageSmoothingEnabled = false;
 
         for (let item of this.backItems) {
+            if (!item || !item.img) continue;
+
             const w = item.img.width * item.scale;
             const h = item.img.height * item.scale;
             const drawY = item.y - h;
@@ -338,6 +431,8 @@ class Decor {
         fctx.imageSmoothingEnabled = false;
 
         for (let item of this.frontItems) {
+            if (!item || !item.img) continue;
+
             const w = item.img.width * item.scale;
             const h = item.img.height * item.scale;
             const drawY = item.y - h;

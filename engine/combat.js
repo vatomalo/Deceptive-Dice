@@ -16,6 +16,94 @@
 // - Rare MaxHearts increase on kill (very low chance)
 // =======================================================
 
+// Stage routing (global)
+window.stageForKill = function stageForKill(kills) {
+  // Replace names with your real folder names under Artwork/BG/
+  if (kills < 3) return "default_stage";
+  if (kills < 6) return "forest_stage";
+  if (kills < 9) return "sakura_stage";
+  if (kills < 12) return "house_stage";
+  if (kills < 15) return "desert_stage";
+  if (kills < 18) return "snow_stage";
+  return "default_stage";
+};
+
+// =======================================================
+// StageTransitionFX — speedlines + smear overlay
+// (procedural, no sprite assets needed)
+// =======================================================
+window.StageTransitionFX = {
+    active: false,
+    t: 0,
+    duration: 520,      // ms
+    intensity: 0.0,     // 0..1
+    dir: 1,             // +1 right, -1 left
+
+    start({ durationMs = 520, dir = 1 } = {}) {
+        this.active = true;
+        this.t = 0;
+        this.duration = durationMs;
+        this.dir = dir;
+        this.intensity = 1.0;
+    },
+
+    stop() {
+        this.active = false;
+        this.t = 0;
+        this.intensity = 0.0;
+    },
+
+    update(dtMs) {
+        if (!this.active) return;
+        this.t += dtMs;
+
+        const p = Math.min(1, this.t / this.duration);
+        // ease out (strong early, softer at end)
+        this.intensity = 1 - (1 - p) * (1 - p);
+
+        if (this.t >= this.duration) {
+            this.stop();
+        }
+    },
+
+    draw(ctx, canvas) {
+        if (!this.active) return;
+
+        const w = canvas.width;
+        const h = canvas.height;
+        const a = Math.max(0, Math.min(1, this.intensity));
+
+        ctx.save();
+        ctx.globalAlpha = 0.35 * a;
+
+        // “motion smear” darken pass (gives perceived blur)
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        ctx.fillRect(0, 0, w, h);
+
+        // Speedlines
+        ctx.globalAlpha = 0.55 * a;
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 2;
+
+        // diagonal lines leaning opposite direction of travel
+        const lean = this.dir > 0 ? -1 : 1;
+
+        const lines = 26;
+        for (let i = 0; i < lines; i++) {
+            const y = (i / (lines - 1)) * h;
+            const x0 = (Math.random() * w) | 0;
+            const len = 80 + Math.random() * 220;
+
+            ctx.beginPath();
+            ctx.moveTo(x0, y);
+            ctx.lineTo(x0 + len, y + lean * (len * 0.18));
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+};
+
 console.log("combat.js loaded");
 
 window._passCaughtAttack = false;
@@ -53,6 +141,93 @@ function shouldSpawnPassQTE(pf, ef) {
     window._qteCooldownUntil = now + 1800; // 1.8s
     return true;
 }
+
+window.transitionStageDash = async function (nextStage, { dir = 1 } = {}) {
+    window.Stage = window.Stage || {};
+    if (Stage.transitioning) return;
+
+    Stage.transitioning = true;
+
+    // Freeze combat UX
+    if (window.xbar) xbar.disable();
+    if (window.DiceSmoke) DiceSmoke.stop();
+    window.hideDice = true;
+
+    // Start FX
+    if (window.StageTransitionFX) StageTransitionFX.start({ durationMs: 520, dir });
+
+    // Start dash animation
+    const startX = samurai.x;
+    const startY = samurai.y;
+
+    samurai.flip = (dir < 0);     // facing left if moving left
+    samurai.setState("run");      // or "dash" if you add an anim
+
+    // Kick off loads immediately (parallel)
+    // Always loads both, even if you usually only change decor.
+    const loadParallax = (window.bg && typeof bg.loadStage === "function")
+        ? bg.loadStage(nextStage)
+        : Promise.resolve();
+
+    const loadDecor = (window.decor && typeof decor.loadStage === "function")
+        ? decor.loadStage(nextStage)
+        : Promise.resolve();
+
+    const loading = Promise.all([loadParallax, loadDecor]);
+
+    // Dash off-screen quickly
+    const dashOutX = dir > 0 ? (canvas.width + 120) : (-120);
+
+    // Optional: afterimages if you already have shadow clone helpers
+    // (this makes the dash look violent without true blur)
+    const spawnAfterimages = () => {
+        if (window.shadowClones && typeof window.spawnShadowClone === "function") {
+            shadowClones.push(spawnShadowClone(samurai));
+        }
+    };
+
+    // “out” burst
+    for (let i = 0; i < 4; i++) { spawnAfterimages(); }
+
+    if (samurai.moveTo) {
+        await samurai.moveTo(dashOutX, 28);
+    } else {
+        // fallback hard snap
+        samurai.x = dashOutX;
+    }
+
+    // Ensure stage assets are ready BEFORE landing
+    await loading;
+
+    // Swap complete; land in the new stage
+    Stage.current = nextStage;
+
+    // Teleport to entry side and dash in
+    const entryX = dir > 0 ? (-80) : (canvas.width + 80);
+    samurai.x = entryX;
+    samurai.y = startY;
+
+    for (let i = 0; i < 6; i++) { spawnAfterimages(); }
+
+    if (samurai.moveTo) {
+        await samurai.moveTo(startX, 22);
+    } else {
+        samurai.x = startX;
+    }
+
+    // Cleanup + resume
+    samurai.setState("idle");
+    if (window.shadowClones) shadowClones.length = 0;
+
+    if (window.StageTransitionFX) StageTransitionFX.stop();
+
+    window.hideDice = false;
+    if (window.DiceSmoke) DiceSmoke.start();
+    if (window.xbar) xbar.showRoll();
+
+    Stage.transitioning = false;
+};
+
 
 // =======================================================
 // HEART SYSTEM (Shards so progress is visible)
@@ -437,7 +612,12 @@ window.knightDeath = async function () {
         loop();
     });
 
+    // after fade finishes, before respawn event
+    const nextStage = stageForKill(window.TotalKills || 0);
+    await transitionStageDash(nextStage, { dir: +1 });
+
     dispatchEvent(new Event("KNIGHT_RESPAWN_EVENT"));
+
 
     if (typeof TotalKills === "number") TotalKills++;
     else window.TotalKills = 1;

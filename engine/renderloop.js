@@ -317,6 +317,9 @@ window.stopRenderLoop = function () {
         fxManager.update(dt);
         fxManager.draw(ctx);
 
+        if (window.StageTransitionFX) StageTransitionFX.update(dt);
+        if (window.Camera) Camera.update(dt);
+
         // ===================================================
         // WEATHER FX
         // ===================================================
@@ -359,6 +362,8 @@ window.stopRenderLoop = function () {
             PaletteSystem.applyWorldTint(ctx, canvas);
             PaletteSystem.applyVignette(ctx, canvas);
         }
+
+        if (window.StageTransitionFX) StageTransitionFX.draw(ctx, canvas);
 
         // ===================================================
         // HP BARS
