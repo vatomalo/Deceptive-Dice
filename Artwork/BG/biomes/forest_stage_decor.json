@@ -115,10 +115,10 @@
           "y": 320,
           "scale": 4,
           "z": "back",
-          "palette": "sakura",
+          "palette": "forest",
           "weather": {
             "snow": false,
-            "sakura": true
+            "sakura": false
           }
         },
         {
@@ -127,10 +127,10 @@
           "y": 320,
           "scale": 3,
           "z": "back",
-          "palette": "sakura",
+          "palette": "forest",
           "weather": {
             "snow": false,
-            "sakura": true
+            "sakura": false
           }
         },
         {
@@ -139,10 +139,10 @@
           "y": 320,
           "scale": 4,
           "z": "back",
-          "palette": "sakura",
+          "palette": "forest",
           "weather": {
             "snow": false,
-            "sakura": true
+            "sakura": false
           }
         },
         {
@@ -181,7 +181,7 @@
           "w": 1,
           "scale": 3.2,
           "z": "back",
-          "y": 320
+          "y": 325
         },
         {
           "src": "Artwork/BG/decor_sprites/lantern.png",

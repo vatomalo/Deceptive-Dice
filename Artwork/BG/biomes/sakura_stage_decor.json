@@ -7,7 +7,7 @@
       "z": "back",
       "weather": {
         "snow": false,
-        "sakura": false
+        "sakura": true
       }
     }],
 
@@ -42,7 +42,7 @@
       "seedSalt": "sakura_stage_props_v1",
       "pick": [
         { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "back", "y": 320 },
-        { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "front", "y": 390, "unique": true },
+        { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "back", "y": 320, "unique": true },
         { "src": "Artwork/BG/decor_sprites/rock2.png", "w": 3, "scale": 2.5, "z": "front", "y": 375 },
         { "src": "Artwork/BG/decor_sprites/Grass4.png", "w": 1, "scale": 4, "z": "back", "y": 320 },
         { "src": "Artwork/BG/decor_sprites/Lantern.png", "w": 1, "scale": 3.5, "z": "back", "y": 320, "unique": true }
