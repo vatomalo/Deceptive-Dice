@@ -1,0 +1,20 @@
+{
+  "forest_stage": [
+    { "src":"tree.png", "x":200, "y":320, "scale":2, "palette":"forest" }
+  ],
+
+  "biomeVariants": {
+    "snow": [
+      { "src":"tree.png", "x":200, "y":320, "scale":2, "palette":"snow" }
+    ]
+  },
+
+  "random": {
+    "min":2,
+    "max":5,
+    "pick":[
+      { "src":"rock.png", "x":300, "y":320, "scale":1.5, "w":3 },
+      { "src":"flower.png", "x":400, "y":320, "scale":1, "w":1, "unique":true }
+    ]
+  }
+}

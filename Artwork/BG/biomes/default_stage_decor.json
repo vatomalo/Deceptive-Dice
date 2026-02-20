@@ -1,0 +1,45 @@
+{
+  "default_stage": [
+],
+
+  "biomeVariants": {
+    "snow": {
+      "default_stage": [
+        { "src": "Artwork/BG/decor_sprites/Grass4.png", "x": 0, "y": 320, "scale": 4, "z": "back", "palette": "snow" },
+        { "src": "Artwork/BG/decor_sprites/Tree.png", "x": 190, "y": 320, "scale": 3, "z": "back",
+          "palette": "snow",
+          "weather": { "snow": true, "sakura": false }
+        },
+        { "src": "Artwork/BG/decor_sprites/lantern.png", "x": 400, "y": 320, "scale": 4, "z": "back", "palette": "stone" },
+        { "src": "Artwork/BG/decor_sprites/rock2.png", "x": 440, "y": 375, "scale": 3, "z": "front", "palette": "snow" }
+      ]
+    },
+
+    "sakura": {
+      "default_stage": [
+        { "src": "Artwork/BG/decor_sprites/Grass4.png", "x": 0, "y": 320, "scale": 4, "z": "back", "palette": "forest" },
+        { "src": "Artwork/BG/decor_sprites/Tree.png", "x": 190, "y": 320, "scale": 3, "z": "back",
+          "palette": "sakura",
+          "weather": { "snow": false, "sakura": true }
+        },
+        { "src": "Artwork/BG/decor_sprites/lantern.png", "x": 400, "y": 320, "scale": 4, "z": "back", "palette": "gold" },
+        { "src": "Artwork/BG/decor_sprites/rock2.png", "x": 440, "y": 375, "scale": 3, "z": "front", "palette": "stone" }
+      ]
+    }
+  },
+
+  "random": {
+    "default_stage": {
+      "min": 3,
+      "max": 6,
+      "seedSalt": "default_stage_props_v1",
+      "pick": [
+        { "src": "Artwork/BG/decor_sprites/rock2.png", "w": 3, "scale": 2.5, "z": "front", "y": 375 },
+        { "src": "Artwork/BG/decor_sprites/Grass4.png", "w": 1, "scale": 4, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/Tree.png", "w": 2, "scale": 3, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/lantern.png", "w": 1, "scale": 3.5, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/house.png", "w": 3, "scale": 4, "z": "back", "y": 330, "unique": true }
+      ]
+    }
+  }
+}

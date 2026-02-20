@@ -1,0 +1,197 @@
+{
+  "forest_stage": [
+    {
+      "src": "Artwork/BG/decor_sprites/Tree.png",
+      "x": 0,
+      "y": 320,
+      "scale": 4,
+      "z": "back"
+    },
+    {
+      "src": "Artwork/BG/decor_sprites/Tree.png",
+      "x": 190,
+      "y": 320,
+      "scale": 3,
+      "z": "back",
+      "weather": {
+        "snow": false,
+        "sakura": false
+      }
+    },
+    {
+      "src": "Artwork/BG/decor_sprites/Tree.png",
+      "x": 400,
+      "y": 320,
+      "scale": 4,
+      "z": "back"
+    }
+  ],
+  "biomeVariants": {
+    "forest": {
+      "forest_stage": [
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 0,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "forest"
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 190,
+          "y": 320,
+          "scale": 3,
+          "z": "back",
+          "palette": "forest",
+          "weather": {
+            "snow": false,
+            "sakura": false
+          }
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 400,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "forest"
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/rock2.png",
+          "x": 440,
+          "y": 375,
+          "scale": 3,
+          "z": "front",
+          "palette": "stone"
+        }
+      ]
+    },
+    "snow": {
+      "forest_stage": [
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 0,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "snow"
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 190,
+          "y": 320,
+          "scale": 3,
+          "z": "back",
+          "palette": "snow",
+          "weather": {
+            "snow": true,
+            "sakura": false
+          }
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 400,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "snow"
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/rock2.png",
+          "x": 440,
+          "y": 375,
+          "scale": 3,
+          "z": "front",
+          "palette": "snow"
+        }
+      ]
+    },
+    "sakura": {
+      "forest_stage": [
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 0,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "sakura",
+          "weather": {
+            "snow": false,
+            "sakura": true
+          }
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 190,
+          "y": 320,
+          "scale": 3,
+          "z": "back",
+          "palette": "sakura",
+          "weather": {
+            "snow": false,
+            "sakura": true
+          }
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "x": 400,
+          "y": 320,
+          "scale": 4,
+          "z": "back",
+          "palette": "sakura",
+          "weather": {
+            "snow": false,
+            "sakura": true
+          }
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/rock2.png",
+          "x": 440,
+          "y": 375,
+          "scale": 3,
+          "z": "front",
+          "palette": "stone"
+        }
+      ]
+    }
+  },
+  "random": {
+    "forest_stage": {
+      "min": 2,
+      "max": 6,
+      "seedSalt": "forest_stage_props_v1",
+      "pick": [
+        {
+          "src": "Artwork/BG/decor_sprites/rock2.png",
+          "w": 3,
+          "scale": 2.5,
+          "z": "front",
+          "y": 375
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "w": 1,
+          "scale": 2.6,
+          "z": "back",
+          "y": 320
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/Tree.png",
+          "w": 1,
+          "scale": 3.2,
+          "z": "back",
+          "y": 320
+        },
+        {
+          "src": "Artwork/BG/decor_sprites/lantern.png",
+          "w": 1,
+          "scale": 3.4,
+          "z": "back",
+          "y": 320,
+          "unique": true
+        }
+      ]
+    }
+  }
+}

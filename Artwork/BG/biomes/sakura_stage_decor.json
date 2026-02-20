@@ -1,0 +1,52 @@
+{
+  "sakura_stage": [    {
+      "src": "Artwork/BG/decor_sprites/Sakura.png",
+      "x": 190,
+      "y": 320,
+      "scale": 3,
+      "z": "back",
+      "weather": {
+        "snow": false,
+        "sakura": false
+      }
+    }],
+
+  "biomeVariants": {
+    "sakura": {
+      "sakura_stage": [
+        { "src": "Artwork/BG/decor_sprites/Grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "forest" },
+        { "src": "Artwork/BG/decor_sprites/Sakura.png",  "x": 190, "y": 320, "scale": 3, "z": "back",  "palette": "sakura",
+          "weather": { "snow": false, "sakura": true }
+        },
+        { "src": "Artwork/BG/decor_sprites/Lantern.png", "x": 400, "y": 320, "scale": 4, "z": "back",  "palette": "gold" },
+        { "src": "Artwork/BG/decor_sprites/rock2.png",   "x": 440, "y": 375, "scale": 3, "z": "front", "palette": "stone" }
+      ]
+    },
+
+    "snow": {
+      "sakura_stage": [
+        { "src": "Artwork/BG/decor_sprites/Grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "snow" },
+        { "src": "Artwork/BG/decor_sprites/Sakura.png",  "x": 190, "y": 320, "scale": 3, "z": "back",  "palette": "snow",
+          "weather": { "snow": true, "sakura": false }
+        },
+        { "src": "Artwork/BG/decor_sprites/Lantern.png", "x": 400, "y": 320, "scale": 4, "z": "back",  "palette": "stone" },
+        { "src": "Artwork/BG/decor_sprites/rock2.png",   "x": 440, "y": 375, "scale": 3, "z": "front", "palette": "snow" }
+      ]
+    }
+  },
+
+  "random": {
+    "sakura_stage": {
+      "min": 2,
+      "max": 5,
+      "seedSalt": "sakura_stage_props_v1",
+      "pick": [
+        { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "front", "y": 390, "unique": true },
+        { "src": "Artwork/BG/decor_sprites/rock2.png", "w": 3, "scale": 2.5, "z": "front", "y": 375 },
+        { "src": "Artwork/BG/decor_sprites/Grass4.png", "w": 1, "scale": 4, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/Lantern.png", "w": 1, "scale": 3.5, "z": "back", "y": 320, "unique": true }
+      ]
+    }
+  }
+}
