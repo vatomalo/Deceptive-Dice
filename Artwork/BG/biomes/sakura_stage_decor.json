@@ -14,7 +14,7 @@
   "biomeVariants": {
     "sakura": {
       "sakura_stage": [
-        { "src": "Artwork/BG/decor_sprites/Grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "forest" },
+        { "src": "Artwork/BG/decor_sprites/grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "forest" },
         { "src": "Artwork/BG/decor_sprites/Sakura.png",  "x": 190, "y": 320, "scale": 3, "z": "back",  "palette": "sakura",
           "weather": { "snow": false, "sakura": true }
         },
@@ -25,7 +25,7 @@
 
     "snow": {
       "sakura_stage": [
-        { "src": "Artwork/BG/decor_sprites/Grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "snow" },
+        { "src": "Artwork/BG/decor_sprites/grass4.png",  "x": 0,   "y": 320, "scale": 4, "z": "back",  "palette": "snow" },
         { "src": "Artwork/BG/decor_sprites/Sakura.png",  "x": 190, "y": 320, "scale": 3, "z": "back",  "palette": "snow",
           "weather": { "snow": true, "sakura": false }
         },
@@ -44,7 +44,7 @@
         { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "back", "y": 320 },
         { "src": "Artwork/BG/decor_sprites/Sakura.png", "w": 2, "scale": 3, "z": "back", "y": 320, "unique": true },
         { "src": "Artwork/BG/decor_sprites/rock2.png", "w": 3, "scale": 2.5, "z": "front", "y": 375 },
-        { "src": "Artwork/BG/decor_sprites/Grass4.png", "w": 1, "scale": 4, "z": "back", "y": 320 },
+        { "src": "Artwork/BG/decor_sprites/grass4.png", "w": 1, "scale": 4, "z": "back", "y": 320 },
         { "src": "Artwork/BG/decor_sprites/Lantern.png", "w": 1, "scale": 3.5, "z": "back", "y": 320, "unique": true }
       ]
     }

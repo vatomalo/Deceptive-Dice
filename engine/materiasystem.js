@@ -5,7 +5,7 @@
 // =======================================================
 console.log("banter.js loaded");
 
-max: false   // enables MAX gambit
+// Materia flags are initialized below.
 
     (function () {
 

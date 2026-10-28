@@ -1,0 +1,5 @@
+native/build/
+native/deps/
+native/vendor/
+native/*.log
+native/*.bmp
