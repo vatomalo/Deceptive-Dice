@@ -30,3 +30,4 @@ engine/main.js
 engine/helpers.js
 engine/renderloop.js
 native/core-bridge.js
+native/sprite-bridge.js

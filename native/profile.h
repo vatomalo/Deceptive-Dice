@@ -3,7 +3,7 @@ static Uint64 profile_native[6], profile_calls[6];
 static double profile_step_ms, profile_present_ms;
 static void profile_record(const char *op, Uint64 start) {
     if (!profiling) return;
-    int category = !strcmp(op,"draw") ? 0 : !strcmp(op,"text") || !strcmp(op,"measure") ? 1 :
+    int category = (!strcmp(op,"draw")||!strcmp(op,"sprite-draw")||!strcmp(op,"character-draw")) ? 0 : !strcmp(op,"text") || !strcmp(op,"measure") ? 1 :
         !strcmp(op,"fill") || !strcmp(op,"stroke") || !strcmp(op,"rect") ? 2 :
         !strcmp(op,"pixels") || !strcmp(op,"put") ? 3 : !strcmp(op,"audio") ? 4 : 5;
     profile_native[category] += SDL_GetPerformanceCounter() - start;

@@ -24,7 +24,7 @@ for folder in ('BGM','SFX'):
         shutil.copy2(converted,stage/relative)
         (stage/source.relative_to(root)).unlink(missing_ok=True)
 (stage/'native').mkdir(exist_ok=True)
-for name in ('platform.js','core-bridge.js','scripts.txt','smoke-test.js','font.ttf','FONT-LICENSE.txt'):
+for name in ('platform.js','core-bridge.js','sprite-bridge.js','scripts.txt','smoke-test.js','font.ttf','FONT-LICENSE.txt'):
     shutil.copy2(root/'native'/name,stage/'native'/name)
 shutil.copy2(root/'native/build/deceptive-dice',stage/'deceptive-dice')
 shutil.copy2(root/'native/launch.sh',stage/'launch.sh')

@@ -6,6 +6,7 @@ static GlyphRun glyphs[256];
 static unsigned glyph_next;
 static SDL_Texture *frame_target;
 static void gpu_begin_frame(void) {
+    dd_batch_flush();
     if(!frame_target){
         frame_target=SDL_CreateTexture(gpu_renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_TARGET,640,360);
         if(!frame_target){fprintf(stderr,"Frame target: %s\n",SDL_GetError());failed=1;return;}
@@ -17,6 +18,7 @@ static void gpu_begin_frame(void) {
     SDL_SetRenderDrawColor(gpu_renderer,0,0,0,255);SDL_RenderClear(gpu_renderer);
 }
 static void gpu_present(void) {
+    dd_batch_flush();
     SDL_SetRenderTarget(gpu_renderer,NULL);SDL_RenderSetLogicalSize(gpu_renderer,640,360);
     SDL_RenderCopy(gpu_renderer,frame_target,NULL,NULL);SDL_RenderPresent(gpu_renderer);
 }
@@ -45,12 +47,20 @@ static SDL_Vertex gpu_vertex(cairo_t *cr,double x,double y,SDL_Color color,float
     return (SDL_Vertex){{(float)x,(float)y},color,{u,v}};
 }
 static void gpu_geometry(SDL_Texture *texture,SDL_Vertex *vertices,int count,int *indices,int index_count) {
+    dd_batch_flush();
     if(SDL_RenderGeometry(gpu_renderer,texture,vertices,count,indices,index_count)) {
         fprintf(stderr,"GPU geometry: %s\n",SDL_GetError());failed=1;
     }
 }
+static void gpu_sprite_batch(void *user,SDL_Texture *texture,SDL_BlendMode blend,const SDL_Vertex *vertices,int count,const int *indices,int index_count){
+    (void)user;SDL_SetTextureBlendMode(texture,blend);
+    if(SDL_RenderGeometry(gpu_renderer,texture,vertices,count,indices,index_count)){
+        fprintf(stderr,"Sprite batch: %s\n",SDL_GetError());failed=1;
+    }
+}
 static SDL_Texture *gpu_surface(Surface *src) {
     if(src->gpu_texture&&src->gpu_revision==src->revision)return src->gpu_texture;
+    dd_batch_flush();
     int w=cairo_image_surface_get_width(src->surface),h=cairo_image_surface_get_height(src->surface);
     if(src->gpu_texture)SDL_DestroyTexture(src->gpu_texture);
     src->gpu_texture=SDL_CreateTexture(gpu_renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC,w,h);
@@ -94,10 +104,8 @@ static void gpu_image(cairo_t *cr,Surface *src,double alpha,const char *mode,dou
     double w=cairo_image_surface_get_width(src->surface),h=cairo_image_surface_get_height(src->surface);
     float u0=fmax(0,fmin(1,sx/w)),v0=fmax(0,fmin(1,sy/h)),u1=fmax(0,fmin(1,(sx+sw)/w)),v1=fmax(0,fmin(1,(sy+sh)/h));
     SDL_Color color={255,255,255,(Uint8)(fmax(0,fmin(1,alpha))*255)};
-    SDL_SetTextureBlendMode(texture,!strcmp(mode,"lighter")?SDL_BLENDMODE_ADD:SDL_BLENDMODE_BLEND);
     SDL_Vertex vertices[]={gpu_vertex(cr,dx,dy,color,u0,v0),gpu_vertex(cr,dx+dw,dy,color,u1,v0),gpu_vertex(cr,dx+dw,dy+dh,color,u1,v1),gpu_vertex(cr,dx,dy+dh,color,u0,v1)};
-    int indices[]={0,1,2,0,2,3};
-    gpu_geometry(texture,vertices,4,indices,6);
+    dd_batch_quad(texture,!strcmp(mode,"lighter")?SDL_BLENDMODE_ADD:SDL_BLENDMODE_BLEND,vertices);
 }
 static void gpu_quad(cairo_t *cr,SDL_Texture *texture,SDL_Color color,double x,double y,double w,double h) {
     SDL_Vertex vertices[]={gpu_vertex(cr,x,y,color,0,0),gpu_vertex(cr,x+w,y,color,1,0),gpu_vertex(cr,x+w,y+h,color,1,1),gpu_vertex(cr,x,y+h,color,0,1)};
@@ -166,6 +174,7 @@ static void gpu_text(cairo_t *cr,const char *text,const char *spec,const char *a
     else gpu_quad(cr,g->texture,color,x,y,g->w,g->h);
 }
 static void gpu_cleanup(void) {
+    dd_batch_flush();
     if(frame_target)SDL_DestroyTexture(frame_target);
     for(int i=1;i<=used;i++){if(surfaces[i].gpu_texture){SDL_DestroyTexture(surfaces[i].gpu_texture);surfaces[i].gpu_texture=NULL;}}
     for(int i=0;i<256;i++){free(glyphs[i].text);if(glyphs[i].texture)SDL_DestroyTexture(glyphs[i].texture);}

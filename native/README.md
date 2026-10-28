@@ -64,8 +64,26 @@ The C++ migration starts in `native/game_core.cpp`, with a C ABI that has no
 SDL or JavaScript dependency. It owns both stamina pools, passive regeneration,
 stance costs/refunds, damage formulas and agility probabilities. The temporary
 `core-bridge.js` adapter connects the existing UI and combat events to that state.
-Battle sequencing, progression, dice animation and much of the presentation
-still use JavaScript; this is the first migration milestone.
+`native/sprite_core.cpp` now also owns sprite animation timelines, image lists,
+and a fixed-capacity sprite batch. QuickJS finalizers free native clip storage.
+Character and shadow-clone drawing uses one native call for anchoring, flip and
+alpha. Compatible adjacent quads share a submission; texture/blend changes,
+shapes, text, clears, texture replacement and frame presentation retain drawing
+order through explicit flushes. Offscreen and tinted draws retain their existing
+Canvas fallback. Battle sequencing, progression and much of the presentation
+still use JavaScript.
+
+Two matched 420-frame trials on physical Steam Link averaged **34.74 FPS** with
+native sprites versus **33.925 FPS** with the reference path (about 2.4% faster).
+Sprite geometry submissions fell from 10,963 to 6,863 across 360 measured frames.
+This is a modest end-to-end gain; the rest of the frame still needs migration.
+Screenshots on hardware are byte-identical. Host checks also compare rolling,
+attack and completed-combat frames at 60, 160 and 420 frames. Native animation
+updates pass 2,400 comparisons against the original JavaScript method.
+
+For a reference run, set `DICE_REFERENCE_SPRITES=1 DICE_DISABLE_BATCH=1`.
+`native/sprite-test.cpp` checks timing, image lists, queue capacity, ordering and
+blend/texture barriers; it also passes host address/undefined-behavior sanitizers.
 
 Run `bash native/test-host.sh` on Linux with SDL development libraries installed.
 It runs the standalone C++ tests, 3,040 comparisons against the original loaded

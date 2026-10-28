@@ -1,5 +1,22 @@
 setTimeout(()=>{
   __testNativeCore();
+  if(globalThis.NativeSprites){
+    let checks=0;
+    for(const interval of [40,83.3333333333,100,250]){
+      const create=()=>Object.assign(Object.create(SpriteSheetAnimator.prototype),{
+        type:'sheet',img:samurai.anim.img,options:{},frameWidth:32,frameHeight:48,frameCount:8,frameTime:interval,currentFrame:0,timer:0
+      });
+      const expected=create(),actual=create();
+      for(let i=0;i<600;i++){
+        if(i%53===0){expected.currentFrame=actual.currentFrame=0;expected.timer=actual.timer=0;}
+        const dt=[0,16,1000/60,32,250,900][i%6];
+        NativeSprites.referenceUpdate.call(expected,dt);actual.update(dt);
+        if(expected.currentFrame!==actual.currentFrame||Math.abs(expected.timer-actual.timer)>1e-9)throw Error('Native sprite animation parity');
+        checks++;
+      }
+    }
+    console.log('NATIVE_SPRITE_PARITY_PASSED checks='+checks);
+  }
   if(!MusicSystem.currentName||!native('music-playing'))throw new Error('Music must start at boot and remain playing');
   console.log('NATIVE_MUSIC_PLAYING_PASSED');
   const assert=(value,message)=>{if(!value)throw new Error(message);};

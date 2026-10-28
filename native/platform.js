@@ -174,6 +174,7 @@ globalThis.__boot=function(){
   DiceSmoke.draw=()=>native('particles',DiceSmoke,true);
   document.dispatchEvent(new Event('DOMContentLoaded'));dispatchEvent(new Event('DOMContentLoaded'));
   installNativeCore();
+  installNativeSprites();
   if(!globalThis.__disableHudCache)installHudCache();
   globalThis.cycleStance=dir=>dir<0?Stance.prev():Stance.next();
   const originalStep=__step;
