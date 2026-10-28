@@ -47,6 +47,7 @@ static TTF_Font *font(const char *spec){int size=16;for(const char *p=spec;*p;p+
 #include "gpu.h"
 #include "particle_updates.h"
 #include "game_core.h"
+#include "audio.h"
 
 static JSValue native(JSContext *c,JSValueConst self,int argc,JSValueConst *v){
  (void)c;(void)self;if(argc<1)return JS_UNDEFINED;const char *op=str(v[0]);Uint64 op_start=profiling?SDL_GetPerformanceCounter():0;
@@ -66,7 +67,8 @@ static JSValue native(JSContext *c,JSValueConst self,int argc,JSValueConst *v){
  if(IS("canvas"))RET(JS_NewInt32(ctx,create(N(1),N(2))));
  if(IS("image")){const char *p=str(v[1]);int id=image(p);if(!id){fprintf(stderr,"Image unavailable: %s (%s)\n",p,IMG_GetError());JS_FreeCString(ctx,p);JS_FreeCString(ctx,op);return JS_ThrowReferenceError(ctx,"Cannot load image");}JS_FreeCString(ctx,p);JSValue a=JS_NewArray(ctx);JS_SetPropertyUint32(ctx,a,0,JS_NewInt32(ctx,id));JS_SetPropertyUint32(ctx,a,1,JS_NewInt32(ctx,cairo_image_surface_get_width(surfaces[id].surface)));JS_SetPropertyUint32(ctx,a,2,JS_NewInt32(ctx,cairo_image_surface_get_height(surfaces[id].surface)));RET(a);}
  if(IS("measure")){const char *t=str(v[1]),*f=str(v[2]);TTF_Font *ft=font(f);int w=0,h=0;if(ft)TTF_SizeUTF8(ft,t,&w,&h);JS_FreeCString(ctx,t);JS_FreeCString(ctx,f);RET(JS_NewInt32(ctx,w));}
- if(IS("audio")){int channel=-1;if(audio_ready){const char *p=str(v[1]);if(JS_ToBool(ctx,v[2])){Mix_HaltMusic();if(music)Mix_FreeMusic(music);music=Mix_LoadMUS(p);if(music){Mix_VolumeMusic((int)(N(3)*MIX_MAX_VOLUME));Mix_PlayMusic(music,-1);channel=-2;}JS_FreeCString(ctx,p);RET(JS_NewInt32(ctx,channel));}int i;for(i=0;i<sound_count;i++)if(!strcmp(sound_paths[i],p))break;if(i==sound_count&&i<256){sounds[i]=Mix_LoadWAV(p);sound_paths[i]=strdup(p);sound_count++;}if(i<256&&sounds[i]){if(N(4)>=0)Mix_HaltChannel(N(4));channel=Mix_PlayChannel(-1,sounds[i],JS_ToBool(ctx,v[2])?-1:0);if(channel>=0)Mix_Volume(channel,(int)(N(3)*MIX_MAX_VOLUME));}JS_FreeCString(ctx,p);}RET(JS_NewInt32(ctx,channel));}
+ if(IS("audio"))RET(play_audio(v));
+ if(IS("music-playing"))RET(JS_NewBool(ctx,audio_ready&&Mix_PlayingMusic()));
  if(IS("pause")){if(audio_ready){if(N(1)==-2)Mix_HaltMusic();else if(N(1)>=0)Mix_HaltChannel(N(1));}DONE;}
  Surface *s=surface(N(1));if(!s){JS_FreeCString(ctx,op);return JS_ThrowRangeError(ctx,"Invalid canvas");}cairo_t *cr=s->cr;
  if(IS("resize")){int w=N(2),h=N(3);if(w>0&&h>0&&w<=8192&&h<=8192){cairo_destroy(cr);cairo_surface_destroy(s->surface);s->surface=cairo_image_surface_create(CAIRO_FORMAT_ARGB32,w,h);s->cr=cairo_create(s->surface);s->revision++;}DONE;}
@@ -102,7 +104,7 @@ int main(int argc,char **argv){
  const char *display=getenv("DICE_DISPLAY_RESOLUTION");if(!display)display="960x540";
  int display_w=960,display_h=540;if(sscanf(display,"%dx%d",&display_w,&display_h)!=2||!((display_w==960&&display_h==540)||(display_w==1280&&display_h==720))){fprintf(stderr,"Unsupported display surface\n");return 1;}
  setenv("SDL_PE_GFX_RESOLUTION",display,1);
- if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER)){fprintf(stderr,"SDL: %s\n",SDL_GetError());return 1;}IMG_Init(IMG_INIT_PNG);TTF_Init();if(!SDL_InitSubSystem(SDL_INIT_AUDIO)){Mix_Init(MIX_INIT_MP3|MIX_INIT_OGG);audio_ready=Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,1024)==0;Mix_AllocateChannels(32);}
+ if(SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMECONTROLLER|SDL_INIT_TIMER)){fprintf(stderr,"SDL: %s\n",SDL_GetError());return 1;}IMG_Init(IMG_INIT_PNG);TTF_Init();open_audio();
  SDL_Window *window=SDL_CreateWindow("Deceptive Dice",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,display_w,display_h,frames?SDL_WINDOW_HIDDEN:SDL_WINDOW_SHOWN);SDL_Renderer *renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);if(!renderer)renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_SOFTWARE);if(!window||!renderer){fprintf(stderr,"Display: %s\n",SDL_GetError());return 1;}gpu_renderer=renderer;SDL_RendererInfo ri;SDL_GetRendererInfo(renderer,&ri);fprintf(stdout,"Renderer: %s flags=%u geometry=SDL_RenderGeometry\n",ri.name,ri.flags);SDL_RenderSetLogicalSize(renderer,640,360);SDL_Texture *texture=NULL;int tw=0,th=0;
  JSRuntime *rt=JS_NewRuntime();JS_SetMemoryLimit(rt,256*1024*1024);JS_SetMaxStackSize(rt,2*1024*1024);ctx=JS_NewContext(rt);JSValue global=JS_GetGlobalObject(ctx);JS_SetPropertyStr(ctx,global,"native",JS_NewCFunction(ctx,native,"native",1));JS_FreeValue(ctx,global);
  dd_core_init();load_script("native/platform.js");if(seed){char code[256];snprintf(code,sizeof(code),"RunSeed=%d;Math.random=(()=>{let s=RunSeed;return()=>{s=(Math.imul(s,1664525)+1013904223)|0;return(s>>>0)/4294967296;};})()",seed);JS_FreeValue(ctx,run(code,"seed"));}char *list=read_file("native/scripts.txt");if(!list)return 1;char *save=NULL;for(char *p=strtok_r(list,"\r\n",&save);p&&!failed;p=strtok_r(NULL,"\r\n",&save))load_script(p);free(list);jobs(rt);JS_FreeValue(ctx,run("__boot()","boot"));jobs(rt);if(smoke)load_script("native/smoke-test.js");

@@ -1,5 +1,7 @@
 setTimeout(()=>{
   __testNativeCore();
+  if(!MusicSystem.currentName||!native('music-playing'))throw new Error('Music must start at boot and remain playing');
+  console.log('NATIVE_MUSIC_PLAYING_PASSED');
   const assert=(value,message)=>{if(!value)throw new Error(message);};
   assert(xbar&&dice.player.loaded&&samurai.anim.frameWidth>0,'Assets and combat must initialize');
   assert(canvas.width===640&&canvas.height===360,'Preserve the original 640x360 game resolution');

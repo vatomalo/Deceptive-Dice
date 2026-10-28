@@ -56,6 +56,12 @@ const MusicSystem = {
         "BG7"
     ],
 
+    tracks: {
+        calm: ["Bg", "BG1", "BG2", "BG3", "BG4", "BG5", "BG6", "BG7"],
+        tense: ["BG", "BG1", "BG2", "BG3", "BG4", "BG5", "BG6", "BG7"],
+        story: ["BG", "BG1"]
+    },
+
     currentName: null,
     fadeTime: 1500,
 
@@ -96,8 +102,7 @@ const MusicSystem = {
         // Debounce: prevent spam calls during transitions
         const now = performance.now();
         if (!force) {
-            this._lastPlayReq = this._lastPlayReq || 0;
-            if (now - this._lastPlayReq < 800) return; // 0.8s guard
+            if (this._lastPlayReq !== undefined && now - this._lastPlayReq < 800) return; // 0.8s guard
             this._lastPlayReq = now;
         }
 
@@ -107,7 +112,8 @@ const MusicSystem = {
         // this._currentMood = currentMood;
 
         // Instead of hard stop, do a safe source swap:
-        const name = this.baseNames[Math.floor(Math.random() * this.baseNames.length)];
+        const names = this.tracks[currentMood] || this.baseNames;
+        const name = names[Math.floor(Math.random() * names.length)];
         const src = this.buildTrackPath(name);
 
         // If it's the same src, do nothing

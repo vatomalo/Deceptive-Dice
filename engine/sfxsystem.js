@@ -16,13 +16,13 @@ const SFX_PATH = "./SFX";
 const SFX_FILES = {
     swing: ["swing1.mp3"],
     dodge: ["dodge1.mp3"],
-    hit:   ["hit1.mp3"],    // remove/adjust if you don't have these yet
-    block: ["block1.mp3"],  // "
-    death: [],              // no files yet → empty list is fine
-    step:  ["step1.mp3"],
-    ui:    ["ui1.mp3"],
-    voice_attack: ["/male/Battle_Grunt1.mp3"],
-    voice_death: ["/male/Death1.mp3"]
+    hit:   ["male/Damage_Grunt1.mp3"],    // existing damage recording
+    block: [],  // "
+    death: ["male/Death1.mp3"],              // existing death recording
+    step:  [],
+    ui:    [],
+    voice_attack: ["male/Battle_Grunt1.mp3"],
+    voice_death: ["male/Death1.mp3"]
 
     // You can add: melee: ["melee1.wav"], etc.
 };

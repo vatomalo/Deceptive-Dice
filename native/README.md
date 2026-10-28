@@ -52,6 +52,14 @@ removed rather than accumulating during play.
 
 ## Build
 
+Packaging requires FFmpeg with libvorbis. It converts the original MP3 assets
+to cached Ogg files because the Valve SDK mixer has no MP3 decoder. The runtime
+resolves the game's `.mp3` references to packaged `.ogg` files, and logs device
+initialization and playback errors. Source MP3 files remain available to the
+browser game. Music starts on the first request, including at time zero.
+Run `node native/test-audio-assets.js` to check filenames and startup behavior;
+the smoke test also checks that the native mixer is playing music after boot.
+
 The C++ migration starts in `native/game_core.cpp`, with a C ABI that has no
 SDL or JavaScript dependency. It owns both stamina pools, passive regeneration,
 stance costs/refunds, damage formulas and agility probabilities. The temporary

@@ -47,7 +47,7 @@ class Image extends EventTarget {
 }
 class Audio extends EventTarget {
   constructor(src=''){super();this.src=src;this.loop=false;this.volume=1;this.paused=true;this.currentTime=0;this.channel=-1;}
-  async play(){this.channel=native('audio',this.src,this.loop,this.volume,this.channel);this.paused=false;}
+  async play(){try{this.channel=native('audio',this.src,this.loop,this.volume,this.channel);this.paused=false;}catch(error){this.paused=true;this.dispatchEvent(new Event('error'));throw error;}}
   pause(){native('pause',this.channel);this.paused=true;}
   load(){} cloneNode(){return new Audio(this.src);}
 }
