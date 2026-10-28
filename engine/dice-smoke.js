@@ -32,8 +32,8 @@ class SmokeParticle {
         this.life -= dt;
         if (this.life <= 0) return false;
 
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * dt / 16;
+        this.y += this.vy * dt / 16;
 
         // fade out at a reasonable speed
         this.alpha -= 0.0010 * dt;
@@ -111,7 +111,9 @@ window.DiceSmoke = {
         if (!isFinite(dx) || !isFinite(dy)) return;
 
         // 2–3 small, soft puffs per frame
-        const count = 2 + (Math.random() < 0.35 ? 1 : 0);
+        this.emissionCarry = (this.emissionCarry || 0) + (2 + (Math.random() < 0.35 ? 1 : 0)) * dt / 16;
+        const count = Math.floor(this.emissionCarry);
+        this.emissionCarry -= count;
         for (let i = 0; i < count; i++) {
             this.particles.push(new SmokeParticle(dx, dy));
         }
@@ -119,7 +121,8 @@ window.DiceSmoke = {
 
 
     update(dt) {
-        this.particles = this.particles.filter(p => p.update(dt));
+        if (window.NativeFX) NativeFX.updateSmoke(this, dt);
+        else this.particles = this.particles.filter(p => p.update(dt));
     },
 
     draw(ctx) {

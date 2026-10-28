@@ -82,9 +82,9 @@ class WeatherSakuraPetal {
         this.life -= dt;
         this.t += dt;
 
-        this.x += this.speedX + Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02);
-        this.y += this.speedY;
-        this.rotation += this.rotSpeed;
+        this.x += (this.speedX + Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02)) * dt / 16;
+        this.y += this.speedY * dt / 16;
+        this.rotation += this.rotSpeed * dt / 16;
     }
 
     draw(ctx) {
@@ -134,7 +134,7 @@ class WeatherRainDrop {
     }
 
     update(dt) {
-        this.y += this.speed;
+        this.y += this.speed * dt / 16;
     }
 
     draw(ctx) {
@@ -183,8 +183,8 @@ class WeatherSnowFlake {
         this.life -= dt;
         this.t += dt;
 
-        this.y += this.speedY;
-        this.x += Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02);
+        this.y += this.speedY * dt / 16;
+        this.x += Math.sin(this.t * this.waveFreq) * (this.waveAmp * 0.02) * dt / 16;
     }
 
     draw(ctx) {
@@ -270,7 +270,7 @@ window.updateWeatherFX = function (dt) {
     const c = getCanvas();
     if (!c) return;
 
-    const f = Weather.fadeSpeed;
+    const f = 1 - Math.pow(1 - Weather.fadeSpeed, dt / 16);
 
     const allow = window.DecorWeather || { sakura: false, snow: false };
 
@@ -348,10 +348,13 @@ window.updateWeatherFX = function (dt) {
     }
 
     // Update & cull all
-    Weather.petals = Weather.petals.filter(p => { p.update(dt); return !p.dead; });
-    Weather.drops = Weather.drops.filter(d => { d.update(dt); return !d.dead; });
-    Weather.flakes = Weather.flakes.filter(fx => { fx.update(dt); return !fx.dead; });
-    Weather.grass = Weather.grass.filter(g => { g.update(dt); return !g.dead; });
+    if (window.NativeFX) NativeFX.updateWeather(Weather, dt);
+    else {
+        Weather.petals = Weather.petals.filter(p => { p.update(dt); return !p.dead; });
+        Weather.drops = Weather.drops.filter(d => { d.update(dt); return !d.dead; });
+        Weather.flakes = Weather.flakes.filter(fx => { fx.update(dt); return !fx.dead; });
+        Weather.grass = Weather.grass.filter(g => { g.update(dt); return !g.dead; });
+    }
 };
 
 window.drawWeatherFX = function (ctx) {

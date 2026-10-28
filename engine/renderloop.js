@@ -235,10 +235,13 @@ window.stopRenderLoop = function () {
     // =======================================================
     // MAIN RENDER LOOP
     // =======================================================
+    let previousRenderTime = null;
     function renderLoop() {
 
         const now = performance.now();
-        const dt = 16 * (window.timeScale || 1);
+        const elapsed = previousRenderTime === null ? 16 : Math.min(100, Math.max(0, now - previousRenderTime));
+        previousRenderTime = now;
+        const dt = elapsed * (window.timeScale || 1);
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.imageSmoothingEnabled = false;
@@ -248,21 +251,22 @@ window.stopRenderLoop = function () {
             updateStamina(dt);
         }
         // (legacy extra regen kept for now)
-        if (window.PlayerStamina) {
-            PlayerStamina.current = Math.min(PlayerStamina.max, PlayerStamina.current + PlayerStamina.regenRate);
+        if (window.PlayerStamina && !window.NativeCore?.ownsStamina) {
+            PlayerStamina.current = Math.min(PlayerStamina.max, PlayerStamina.current + PlayerStamina.regenRate * dt / 16);
         }
-        if (window.EnemyStamina) {
-            EnemyStamina.current = Math.min(EnemyStamina.max, EnemyStamina.current + EnemyStamina.regenRate);
+        if (window.EnemyStamina && !window.NativeCore?.ownsStamina) {
+            EnemyStamina.current = Math.min(EnemyStamina.max, EnemyStamina.current + EnemyStamina.regenRate * dt / 16);
         }
 
         // ---------------- flash fade ----------------
         if (flashScreen > 0) {
-            flashScreen -= 0.08;
+            flashScreen -= 0.08 * dt / 16;
             if (flashScreen < 0) flashScreen = 0;
         }
 
         // ---------------- background ----------------
         //Ticks.bgSpeedMul += (Ticks.bgSpeedTarget - Ticks.bgSpeedMul) * 0.08;
+
         bg.update(dt, Ticks.bgSpeedMul);
         bg.draw(ctx);
 
@@ -283,6 +287,7 @@ window.stopRenderLoop = function () {
         samurai.draw(ctx);
         knight.draw(ctx);
 
+        if (window.updateShadowClones) updateShadowClones(dt);
         if (window.drawShadowClones) {
             drawShadowClones(ctx);
         }
@@ -364,6 +369,8 @@ window.stopRenderLoop = function () {
         }
 
         if (window.StageTransitionFX) StageTransitionFX.draw(ctx, canvas);
+
+
 
         // ===================================================
         // HP BARS

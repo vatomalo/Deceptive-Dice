@@ -129,8 +129,9 @@ class SpriteSheetAnimator {
     update(delta) {
         this.timer += delta;
         if (this.timer >= this.frameTime) {
-            this.timer = 0;
-            this.currentFrame = (this.currentFrame + 1) % this.frameCount;
+            const frames = Math.floor(this.timer / this.frameTime);
+            this.timer %= this.frameTime;
+            this.currentFrame = (this.currentFrame + frames) % this.frameCount;
         }
     }
 
