@@ -705,9 +705,8 @@ class FXManager {
         });
 
         // grass — always on, just sway
-        for (let g of this.grass) {
-            g.update(dt);
-        }
+        if (window.NativeFX) NativeFX.updateGrass(this.grass, dt);
+        else for (let g of this.grass) g.update(dt);
 
         // maintain Sakura / Rain streams if used
         if (this.canvasW && this.canvasH) {
@@ -733,9 +732,8 @@ class FXManager {
 
     draw(ctx) {
         // Grass first so it sits closest to the ground layer
-        for (let g of this.grass) {
-            g.draw(ctx);
-        }
+        if (window.NativeFX) NativeFX.grass(this.grass);
+        else for (let g of this.grass) g.draw(ctx);
 
         // normal FX (smoke, slash, dust, angel, etc.)
         for (let f of this.list) {

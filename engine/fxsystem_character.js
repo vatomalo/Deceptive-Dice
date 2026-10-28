@@ -11,11 +11,15 @@ console.log("fxsystem_character.js loaded");
 Character.prototype.blinkTo = function (tx, ty) {
     return new Promise(resolve => {
 
-        let frame = 0;
         const steps = 12;
         const startAlpha = this.alpha;
+        const started = performance.now();
+        const duration = steps * 16;
+        let warped = false;
 
         const tick = () => {
+            const elapsed = performance.now() - started;
+            const frame = Math.min(steps, elapsed / 16);
 
             // Fade-out frames
             if (frame < 4) {
@@ -23,20 +27,15 @@ Character.prototype.blinkTo = function (tx, ty) {
             }
 
             // Warp frame
-            else if (frame === 4) {
-                this.x = tx;
-                this.y = ty;
-                this.alpha = 0;
-            }
-
-            // Fade-in frames
             else {
+                if (!warped) {
+                    this.x = tx;
+                    this.y = ty;
+                    warped = true;
+                }
                 this.alpha = Math.min(1, (frame - 4) * 0.2);
             }
-
-            frame++;
-
-            if (frame <= steps) {
+            if (elapsed < duration) {
                 requestAnimationFrame(tick);
             } else {
                 this.alpha = 1;
@@ -74,7 +73,7 @@ window.updateShadowClones = function (delta) {
     for (let i = shadowClones.length - 1; i >= 0; i--) {
         const c = shadowClones[i];
         c.life -= delta;
-        c.alpha -= 0.08;
+        c.alpha -= 0.08 * delta / 16;
 
         if (c.life <= 0 || c.alpha <= 0)
             shadowClones.splice(i, 1);

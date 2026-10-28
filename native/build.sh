@@ -27,6 +27,8 @@ if [ ! -f "$prefix/lib/libcairo.a" ]; then
 fi
 cd "$root/.."
 q=native/vendor
-$CC -O2 -D_GNU_SOURCE -DCONFIG_VERSION=\"2025-09-13\" -I"$q" -I"$prefix/include/cairo" $(pkg-config --cflags sdl2) native/runtime.c "$q/quickjs.c" "$q/libregexp.c" "$q/libunicode.c" "$q/cutils.c" "$q/dtoa.c" -o native/build/deceptive-dice $(pkg-config --libs sdl2) -lSDL2_image -lSDL2_ttf -lSDL2_mixer "$prefix/lib/libcairo.a" "$prefix/lib/libpixman-1.a" -lm -lpthread -ldl
+$CXX -O2 -std=c++11 -fno-exceptions -fno-rtti -c native/game_core.cpp -o native/build/game_core.o
+$CXX -O2 -std=c++11 -fno-exceptions -fno-rtti native/core-test.cpp native/build/game_core.o -o native/build/core-test-arm
+$CC -O2 -D_GNU_SOURCE -DCONFIG_VERSION=\"2025-09-13\" -I"$q" -I"$prefix/include/cairo" $(pkg-config --cflags sdl2) native/runtime.c native/build/game_core.o "$q/quickjs.c" "$q/libregexp.c" "$q/libunicode.c" "$q/cutils.c" "$q/dtoa.c" -o native/build/deceptive-dice $(pkg-config --libs sdl2) -lSDL2_image -lSDL2_ttf -lSDL2_mixer "$prefix/lib/libcairo.a" "$prefix/lib/libpixman-1.a" -lm -lpthread -ldl
 $STRIP native/build/deceptive-dice
 file native/build/deceptive-dice

@@ -10,7 +10,7 @@ stage.mkdir(parents=True,exist_ok=True)
 for name in ('Artwork','BGM','SFX','Data','engine'):
     shutil.copytree(root/name,stage/name,dirs_exist_ok=True)
 (stage/'native').mkdir(exist_ok=True)
-for name in ('platform.js','scripts.txt','smoke-test.js','font.ttf','FONT-LICENSE.txt'):
+for name in ('platform.js','core-bridge.js','scripts.txt','smoke-test.js','font.ttf','FONT-LICENSE.txt'):
     shutil.copy2(root/'native'/name,stage/'native'/name)
 shutil.copy2(root/'native/build/deceptive-dice',stage/'deceptive-dice')
 shutil.copy2(root/'native/launch.sh',stage/'launch.sh')
